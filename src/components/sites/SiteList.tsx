@@ -11,9 +11,10 @@ interface SiteFormData {
   name: string;
   address: string;
   abbreviation: string;
+  vergi_no: string;
 }
 
-const EMPTY_FORM: SiteFormData = { name: "", address: "", abbreviation: "" };
+const EMPTY_FORM: SiteFormData = { name: "", address: "", abbreviation: "", vergi_no: "" };
 
 export default function SiteList({
   sites,
@@ -44,6 +45,7 @@ export default function SiteList({
       name: site.name,
       address: site.address,
       abbreviation: site.abbreviation,
+      vergi_no: site.vergi_no ?? "",
     });
     setShowForm(true);
     setError(null);
@@ -69,6 +71,7 @@ export default function SiteList({
           name: form.name,
           address: form.address,
           abbreviation: form.abbreviation.toUpperCase(),
+          vergi_no: form.vergi_no || null,
         })
         .eq("id", editingSite.id);
 
@@ -82,6 +85,7 @@ export default function SiteList({
         name: form.name,
         address: form.address,
         abbreviation: form.abbreviation.toUpperCase(),
+        vergi_no: form.vergi_no || null,
         is_active: true,
       });
 
@@ -130,7 +134,7 @@ export default function SiteList({
             {editingSite ? "Siteyi Düzenle" : "Yeni Site"}
           </h3>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Site Adı <span className="text-red-500">*</span>
@@ -179,6 +183,20 @@ export default function SiteList({
                   required
                   className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Kargıcak Mah. 119. Sk. No:8 C/1 Alanya / Antalya"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Vergi No
+                </label>
+                <input
+                  type="text"
+                  value={form.vergi_no}
+                  onChange={(e) =>
+                    setForm((p) => ({ ...p, vergi_no: e.target.value }))
+                  }
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="1234567890"
                 />
               </div>
             </div>
@@ -254,6 +272,9 @@ export default function SiteList({
               )}
             </div>
             <p className="text-xs text-gray-500 mt-3 leading-relaxed">{site.address}</p>
+            {site.vergi_no && (
+              <p className="text-xs text-gray-400 mt-1">Vergi No: {site.vergi_no}</p>
+            )}
             <div className="mt-2">
               <span
                 className={`text-xs px-2 py-0.5 rounded-full font-medium ${

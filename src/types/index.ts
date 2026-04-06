@@ -5,6 +5,7 @@ export interface Site {
   name: string;
   address: string;
   abbreviation: string;
+  vergi_no: string | null;
   is_active: boolean;
   created_at: string;
 }

@@ -4,15 +4,12 @@ import SiteList from "@/components/sites/SiteList";
 export default async function SitesPage() {
   const supabase = await createClient();
 
-  const { data: sites } = await supabase
-    .from("sites")
-    .select("*")
-    .order("name");
+  const { data: { user } } = await supabase.auth.getUser();
 
-  const { data: roleData } = await supabase
-    .from("user_roles")
-    .select("role")
-    .single();
+  const [{ data: sites }, { data: roleData }] = await Promise.all([
+    supabase.from("sites").select("*").order("name"),
+    supabase.from("user_roles").select("role").eq("user_id", user!.id).single(),
+  ]);
 
   const isAdmin = roleData?.role === "admin";
 

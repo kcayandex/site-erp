@@ -37,6 +37,9 @@ function ReceiptCopy({
         <div>
           <div style={{ fontSize: "16px", fontWeight: "bold" }}>{site.name}</div>
           <div style={{ fontSize: "10px", color: "#555", marginTop: "2px" }}>{site.address}</div>
+          {site.vergi_no && (
+            <div style={{ fontSize: "9px", color: "#555", marginTop: "1px" }}>Vergi No: {site.vergi_no}</div>
+          )}
           <div style={{ fontSize: "9px", color: "#888", fontStyle: "italic" }}>Management Application</div>
         </div>
         <div style={{ textAlign: "center" }}>
