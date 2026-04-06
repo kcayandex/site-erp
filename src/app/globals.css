@@ -27,3 +27,15 @@
     }
   }
 }
+
+@page {
+  margin: 0;
+  size: A4;
+}
+
+@media print {
+  body {
+    margin: 0;
+    padding: 0;
+  }
+}
