@@ -28,7 +28,7 @@ export default async function ProtectedLayout({
       <Sidebar isAdmin={isAdmin} />
       <div className="flex flex-col flex-1 overflow-hidden">
         <Header userEmail={user.email ?? ""} />
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        <main className="flex-1 overflow-y-auto p-6 print:p-0 print:overflow-visible">{children}</main>
       </div>
     </div>
   );

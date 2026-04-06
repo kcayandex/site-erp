@@ -24,7 +24,7 @@ export default function Sidebar({ isAdmin }: { isAdmin: boolean }) {
   const pathname = usePathname();
 
   return (
-    <aside className="w-60 bg-gray-900 text-white flex flex-col">
+    <aside className="print:hidden w-60 bg-gray-900 text-white flex flex-col">
       <div className="px-6 py-5 border-b border-gray-700">
         <h1 className="text-lg font-bold tracking-tight">Site ERP</h1>
         <p className="text-xs text-gray-400 mt-0.5">Yönetim Sistemi</p>
