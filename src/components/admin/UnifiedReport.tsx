@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { TrendingUp, TrendingDown, Minus, Building2, HardHat } from "lucide-react"
+import { TrendingUp, TrendingDown, Minus, Building2, HardHat, ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react"
 
 interface SiteRow {
   site_id: string
@@ -27,8 +27,15 @@ interface Props {
   periodLabel: string
 }
 
+type SortField = "total_islenen" | "total_odenen" | "profit" | "margin"
+type SortDir = "asc" | "desc"
+
 function fmt(n: number) {
   return n.toLocaleString("tr-TR", { minimumFractionDigits: 2 })
+}
+
+function margin(row: { total_islenen: number; profit: number }) {
+  return row.total_islenen > 0 ? (row.profit / row.total_islenen) * 100 : 0
 }
 
 function TrendIcon({ profit }: { profit: number }) {
@@ -39,8 +46,55 @@ function TrendIcon({ profit }: { profit: number }) {
     : <Minus size={14} className="text-gray-400" />
 }
 
+function SortIcon({ field, active, dir }: { field: string; active: boolean; dir: SortDir }) {
+  if (!active) return <ChevronsUpDown size={13} className="text-gray-400" />
+  return dir === "asc"
+    ? <ChevronUp size={13} className="text-blue-600" />
+    : <ChevronDown size={13} className="text-blue-600" />
+}
+
+function SortTh({
+  label, field, active, dir, align = "right", color = "text-gray-600", onClick,
+}: {
+  label: string; field: SortField; active: boolean; dir: SortDir
+  align?: "left" | "center" | "right"; color?: string; onClick: (f: SortField) => void
+}) {
+  return (
+    <th
+      className={`px-6 py-3 font-semibold ${color} text-${align} cursor-pointer select-none hover:bg-gray-100 transition`}
+      onClick={() => onClick(field)}
+    >
+      <span className={`inline-flex items-center gap-1 ${align === "right" ? "justify-end w-full" : align === "center" ? "justify-center w-full" : ""}`}>
+        {label}
+        <SortIcon field={field} active={active} dir={dir} />
+      </span>
+    </th>
+  )
+}
+
+function sortRows<T extends { total_islenen: number; total_odenen: number; profit: number }>(
+  rows: T[], field: SortField, dir: SortDir
+): T[] {
+  return [...rows].sort((a, b) => {
+    const av = field === "margin" ? margin(a) : a[field]
+    const bv = field === "margin" ? margin(b) : b[field]
+    return dir === "asc" ? av - bv : bv - av
+  })
+}
+
 export default function UnifiedReport({ siteRows, contractorRows, periodLabel }: Props) {
   const [tab, setTab] = useState<"site" | "contractor">("site")
+  const [sortField, setSortField] = useState<SortField>("profit")
+  const [sortDir, setSortDir] = useState<SortDir>("desc")
+
+  function handleSort(field: SortField) {
+    if (field === sortField) {
+      setSortDir((d) => d === "desc" ? "asc" : "desc")
+    } else {
+      setSortField(field)
+      setSortDir("desc")
+    }
+  }
 
   const siteTotals = siteRows.reduce((a, r) => ({
     islenen: a.islenen + r.total_islenen,
@@ -55,6 +109,11 @@ export default function UnifiedReport({ siteRows, contractorRows, periodLabel }:
   }), { islenen: 0, odenen: 0, profit: 0 })
 
   const activeTotals = tab === "site" ? siteTotals : ctTotals
+
+  const sortedSites = sortRows(siteRows, sortField, sortDir)
+  const sortedContractors = sortRows(contractorRows, sortField, sortDir)
+
+  const thProps = { active: true, dir: sortDir, onClick: handleSort }
 
   return (
     <div className="space-y-4">
@@ -79,15 +138,13 @@ export default function UnifiedReport({ siteRows, contractorRows, periodLabel }:
         </div>
       </div>
 
-      {/* Tabs */}
+      {/* Tabs + Table */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div className="flex border-b border-gray-200">
           <button
             onClick={() => setTab("site")}
             className={`flex items-center gap-2 px-6 py-3.5 text-sm font-medium transition border-b-2 -mb-px ${
-              tab === "site"
-                ? "border-blue-600 text-blue-600"
-                : "border-transparent text-gray-500 hover:text-gray-700"
+              tab === "site" ? "border-blue-600 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-700"
             }`}
           >
             <Building2 size={15} />
@@ -96,9 +153,7 @@ export default function UnifiedReport({ siteRows, contractorRows, periodLabel }:
           <button
             onClick={() => setTab("contractor")}
             className={`flex items-center gap-2 px-6 py-3.5 text-sm font-medium transition border-b-2 -mb-px ${
-              tab === "contractor"
-                ? "border-blue-600 text-blue-600"
-                : "border-transparent text-gray-500 hover:text-gray-700"
+              tab === "contractor" ? "border-blue-600 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-700"
             }`}
           >
             <HardHat size={15} />
@@ -113,17 +168,17 @@ export default function UnifiedReport({ siteRows, contractorRows, periodLabel }:
               <tr>
                 <th className="text-left px-6 py-3 font-semibold text-gray-600">Site</th>
                 <th className="text-center px-6 py-3 font-semibold text-gray-600">Makbuz</th>
-                <th className="text-right px-6 py-3 font-semibold text-blue-600">İşlenen (₺)</th>
-                <th className="text-right px-6 py-3 font-semibold text-orange-600">Ödenen (₺)</th>
-                <th className="text-right px-6 py-3 font-semibold text-green-700">Kâr (₺)</th>
-                <th className="text-center px-6 py-3 font-semibold text-gray-600">Marj</th>
+                <SortTh label="İşlenen (₺)" field="total_islenen" {...thProps} active={sortField === "total_islenen"} color="text-blue-600" />
+                <SortTh label="Ödenen (₺)" field="total_odenen" {...thProps} active={sortField === "total_odenen"} color="text-orange-600" />
+                <SortTh label="Kâr (₺)" field="profit" {...thProps} active={sortField === "profit"} color="text-green-700" />
+                <SortTh label="Marj" field="margin" {...thProps} active={sortField === "margin"} align="center" />
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {siteRows.length === 0 ? (
+              {sortedSites.length === 0 ? (
                 <tr><td colSpan={6} className="px-6 py-10 text-center text-gray-400">Bu dönemde kayıt yok.</td></tr>
-              ) : siteRows.map(row => {
-                const margin = row.total_islenen > 0 ? ((row.profit / row.total_islenen) * 100).toFixed(1) : "0.0"
+              ) : sortedSites.map(row => {
+                const m = margin(row)
                 return (
                   <tr key={row.site_id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 font-semibold text-gray-800">{row.site_name}</td>
@@ -134,7 +189,7 @@ export default function UnifiedReport({ siteRows, contractorRows, periodLabel }:
                     <td className="px-6 py-4 text-center">
                       <div className="flex items-center justify-center gap-1">
                         <TrendIcon profit={row.profit} />
-                        <span className={`text-xs font-semibold ${row.profit >= 0 ? "text-green-600" : "text-red-500"}`}>%{margin}</span>
+                        <span className={`text-xs font-semibold ${row.profit >= 0 ? "text-green-600" : "text-red-500"}`}>%{m.toFixed(1)}</span>
                       </div>
                     </td>
                   </tr>
@@ -151,17 +206,17 @@ export default function UnifiedReport({ siteRows, contractorRows, periodLabel }:
               <tr>
                 <th className="text-left px-6 py-3 font-semibold text-gray-600">Contractor</th>
                 <th className="text-center px-6 py-3 font-semibold text-gray-600">Makbuz</th>
-                <th className="text-right px-6 py-3 font-semibold text-blue-600">İşlenen (₺)</th>
-                <th className="text-right px-6 py-3 font-semibold text-orange-600">Contractor'a Ödenen (₺)</th>
-                <th className="text-right px-6 py-3 font-semibold text-green-700">Benim Kârım (₺)</th>
-                <th className="text-center px-6 py-3 font-semibold text-gray-600">Marj</th>
+                <SortTh label="İşlenen (₺)" field="total_islenen" {...thProps} active={sortField === "total_islenen"} color="text-blue-600" />
+                <SortTh label="Contractor'a Ödenen (₺)" field="total_odenen" {...thProps} active={sortField === "total_odenen"} color="text-orange-600" />
+                <SortTh label="Benim Kârım (₺)" field="profit" {...thProps} active={sortField === "profit"} color="text-green-700" />
+                <SortTh label="Marj" field="margin" {...thProps} active={sortField === "margin"} align="center" />
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {contractorRows.length === 0 ? (
+              {sortedContractors.length === 0 ? (
                 <tr><td colSpan={6} className="px-6 py-10 text-center text-gray-400">Bu dönemde contractor kaydı yok.</td></tr>
-              ) : contractorRows.map(row => {
-                const margin = row.total_islenen > 0 ? ((row.profit / row.total_islenen) * 100).toFixed(1) : "0.0"
+              ) : sortedContractors.map(row => {
+                const m = margin(row)
                 return (
                   <tr key={row.contractor_id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 font-semibold text-gray-800">{row.contractor_name}</td>
@@ -172,7 +227,7 @@ export default function UnifiedReport({ siteRows, contractorRows, periodLabel }:
                     <td className="px-6 py-4 text-center">
                       <div className="flex items-center justify-center gap-1">
                         <TrendIcon profit={row.profit} />
-                        <span className={`text-xs font-semibold ${row.profit >= 0 ? "text-green-600" : "text-red-500"}`}>%{margin}</span>
+                        <span className={`text-xs font-semibold ${row.profit >= 0 ? "text-green-600" : "text-red-500"}`}>%{m.toFixed(1)}</span>
                       </div>
                     </td>
                   </tr>

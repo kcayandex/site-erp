@@ -3,7 +3,6 @@ import { redirect } from "next/navigation"
 import { Suspense } from "react"
 import ReportFilters from "@/components/admin/ReportFilters"
 import UnifiedReport from "@/components/admin/UnifiedReport"
-import ReportCharts from "@/components/admin/ReportCharts"
 
 const MONTH_NAMES = [
   "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
@@ -83,7 +82,7 @@ export default async function RaporPage({
   const { data: receipts } = await supabase
     .from("receipts")
     .select(
-      "site_id, contractor_id, total_islenen, total_odenen, date, site:sites(name), contractor:contractors(name)",
+      "site_id, contractor_id, total_islenen, total_odenen, site:sites(name), contractor:contractors(name)",
     )
     .gte("date", start)
     .lte("date", end)
@@ -165,66 +164,6 @@ export default async function RaporPage({
     .map(([contractor_id, v]) => ({ contractor_id, ...v }))
     .sort((a, b) => b.total_islenen - a.total_islenen)
 
-  // Aggregate by month for trend chart
-  const SHORT_MONTHS = ["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"]
-  const monthMap = new Map<string, { label: string; islenen: number; odenen: number }>()
-  for (const r of receipts ?? []) {
-    const ym = (r.date as string).slice(0, 7) // "2026-04"
-    const [yr, mo] = ym.split("-")
-    const label = `${SHORT_MONTHS[Number(mo) - 1]} ${yr.slice(2)}`
-    const ex = monthMap.get(ym) ?? { label, islenen: 0, odenen: 0 }
-    monthMap.set(ym, {
-      label,
-      islenen: ex.islenen + Number(r.total_islenen ?? 0),
-      odenen: ex.odenen + Number(r.total_odenen ?? 0),
-    })
-  }
-
-  const monthlyData = Array.from(monthMap.entries())
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([, v]) => ({
-      month: v.label,
-      islenen: v.islenen,
-      odenen: v.odenen,
-      kar: v.islenen - v.odenen,
-    }))
-
-  const totalIslenen = siteRows.reduce((s, r) => s + r.total_islenen, 0)
-  const totalOdenen = siteRows.reduce((s, r) => s + r.total_odenen, 0)
-
-  const chartSites = siteRows.map((r) => ({
-    site_name: r.site_name,
-    islenen: r.total_islenen,
-    kar: r.profit,
-    margin: r.total_islenen > 0 ? (r.profit / r.total_islenen) * 100 : 0,
-  }))
-
-  const chartContractors = contractorRows
-    .filter((r) => r.total_odenen > 0)
-    .map((r) => ({
-      contractor_name: r.contractor_name,
-      odenen: r.total_odenen,
-      kar: r.profit,
-    }))
-
-  return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-gray-800">Rapor</h2>
-        <p className="text-gray-500 text-sm mt-1">
-          Site ve Contractor bazında kâr analizi
-        </p>
-      </div>
-      <Suspense>
-        <ReportFilters />
-      </Suspense>
-      <ReportCharts
-        monthly={monthlyData}
-        sites={chartSites}
-        contractors={chartContractors}
-        totalIslenen={totalIslenen}
-        totalOdenen={totalOdenen}
-      />
       <UnifiedReport
         siteRows={siteRows}
         contractorRows={contractorRows}
