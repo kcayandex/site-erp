@@ -205,7 +205,7 @@ export default function ReportCharts({ monthly, sites, contractors, totalIslenen
                   <LabelList
                     dataKey="margin"
                     position="right"
-                    formatter={(v: number) => `%${v.toFixed(1)}`}
+                    formatter={(v) => `%${Number(v).toFixed(1)}`}
                     style={{ fontSize: 11, fill: "#6b7280", fontWeight: 600 }}
                   />
                 </Bar>
