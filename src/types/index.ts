@@ -1,5 +1,15 @@
 export type UserRole = "admin" | "user";
 
+export interface Contractor {
+  id: string;
+  name: string;
+  address: string | null;
+  phone: string | null;
+  notes: string | null;
+  is_active: boolean;
+  created_at: string;
+}
+
 export interface Site {
   id: string;
   name: string;
@@ -26,6 +36,8 @@ export interface Receipt {
   sequence_no: number;
   date: string;
   category: string | null;
+  contractor_id: string | null;
+  contractor?: Contractor;
   payment_description: string | null;
   items: ReceiptItem[];
   total_islenen: number;

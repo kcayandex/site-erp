@@ -11,17 +11,14 @@ export default async function EditReceiptPage({
 }) {
   const supabase = await createClient();
 
-  const [{ data: receipt }, { data: sites }] = await Promise.all([
+  const [{ data: receipt }, { data: sites }, { data: contractors }] = await Promise.all([
     supabase
       .from("receipts")
       .select("*, site:sites(id, name, abbreviation, address)")
       .eq("id", params.id)
       .single(),
-    supabase
-      .from("sites")
-      .select("id, name, abbreviation, address")
-      .eq("is_active", true)
-      .order("name"),
+    supabase.from("sites").select("id, name, abbreviation, address").eq("is_active", true).order("name"),
+    supabase.from("contractors").select("id, name").eq("is_active", true).order("name"),
   ]);
 
   if (!receipt) notFound();
@@ -44,7 +41,7 @@ export default async function EditReceiptPage({
           Yazdır / PDF
         </Link>
       </div>
-      <ReceiptForm sites={sites ?? []} existingReceipt={receipt} />
+      <ReceiptForm sites={sites ?? []} contractors={contractors ?? []} existingReceipt={receipt} />
     </div>
   );
 }

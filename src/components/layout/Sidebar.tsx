@@ -8,16 +8,20 @@ import {
   Building2,
   FileText,
   TrendingUp,
+  HardHat,
+  BarChart3,
 } from "lucide-react";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/siteler", label: "Siteler", icon: Building2 },
+  { href: "/contractors", label: "Contractors", icon: HardHat },
   { href: "/makbuzlar", label: "Makbuzlar", icon: FileText },
 ];
 
 const adminItems = [
   { href: "/admin/kar-raporu", label: "Kar Raporu", icon: TrendingUp },
+  { href: "/admin/contractor-report", label: "Contractor Raporu", icon: BarChart3 },
 ];
 
 export default function Sidebar({ isAdmin }: { isAdmin: boolean }) {

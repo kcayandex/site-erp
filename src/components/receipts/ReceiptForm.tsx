@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { amountToWords } from "@/lib/utils/amount-to-words";
 import { getSerialNo, buildReceiptNo } from "@/lib/utils/receipt-number";
 import { RECEIPT_CATEGORIES } from "@/lib/constants/categories";
-import type { Site, Receipt, ReceiptItem } from "@/types";
+import type { Site, Receipt, ReceiptItem, Contractor } from "@/types";
 
 const EMPTY_ITEMS: ReceiptItem[] = Array.from({ length: 5 }, (_, i) => ({
   no: i + 1,
@@ -17,10 +17,11 @@ const EMPTY_ITEMS: ReceiptItem[] = Array.from({ length: 5 }, (_, i) => ({
 
 interface Props {
   sites: Pick<Site, "id" | "name" | "abbreviation" | "address">[];
+  contractors: Pick<Contractor, "id" | "name">[];
   existingReceipt?: Receipt;
 }
 
-export default function ReceiptForm({ sites, existingReceipt }: Props) {
+export default function ReceiptForm({ sites, contractors, existingReceipt }: Props) {
   const router = useRouter();
   const supabase = createClient();
 
@@ -29,6 +30,7 @@ export default function ReceiptForm({ sites, existingReceipt }: Props) {
   const [siteId, setSiteId] = useState(existingReceipt?.site_id ?? "");
   const [date, setDate] = useState(existingReceipt?.date ?? today);
   const [category, setCategory] = useState(existingReceipt?.category ?? "")
+  const [contractorId, setContractorId] = useState(existingReceipt?.contractor_id ?? "")
   const [paymentDescription, setPaymentDescription] = useState(
     existingReceipt?.payment_description ?? ""
   );
@@ -98,6 +100,7 @@ export default function ReceiptForm({ sites, existingReceipt }: Props) {
           site_id: siteId,
           date,
           category: category || null,
+          contractor_id: contractorId || null,
           payment_description: paymentDescription || null,
           items,
           total_islenen: totalIslenen,
@@ -134,6 +137,7 @@ export default function ReceiptForm({ sites, existingReceipt }: Props) {
         sequence_no: seq,
         date,
         category: category || null,
+        contractor_id: contractorId || null,
         payment_description: paymentDescription || null,
         items,
         total_islenen: totalIslenen,
@@ -201,7 +205,22 @@ export default function ReceiptForm({ sites, existingReceipt }: Props) {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Contractor
+            </label>
+            <select
+              value={contractorId}
+              onChange={(e) => setContractorId(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Seçiniz...</option>
+              {contractors.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Kategori <span className="text-red-500">*</span>
