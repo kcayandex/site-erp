@@ -97,16 +97,16 @@ function ContractorTooltip({ active, payload, label }: { active?: boolean; paylo
       <p className="font-semibold text-gray-700 mb-2 text-xs leading-tight">{label}</p>
       <p className="flex justify-between gap-4 text-orange-600">
         <span>Ona Ödedik</span>
-        <span className="font-medium">{tl(odened)}</span>
+        <span className="font-medium">{tl(odenen)}</span>
       </p>
       <p className="flex justify-between gap-4 text-green-600">
         <span>Bizim Kârımız</span>
         <span className="font-medium">{tl(kar)}</span>
       </p>
-      {odened > 0 && (
+      {odenen > 0 && (
         <p className="flex justify-between gap-4 mt-1 pt-1 border-t border-gray-100 text-gray-500 text-xs">
           <span>Kâr / Ödeme oranı</span>
-          <span className="font-medium">%{((kar / odened) * 100).toFixed(1)}</span>
+          <span className="font-medium">%{((kar / odenen) * 100).toFixed(1)}</span>
         </p>
       )}
     </div>
