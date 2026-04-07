@@ -164,6 +164,15 @@ export default async function RaporPage({
     .map(([contractor_id, v]) => ({ contractor_id, ...v }))
     .sort((a, b) => b.total_islenen - a.total_islenen)
 
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold text-gray-800">Rapor</h2>
+        <p className="text-gray-500 text-sm mt-1">Site ve Contractor bazında kâr analizi</p>
+      </div>
+      <Suspense>
+        <ReportFilters />
+      </Suspense>
       <UnifiedReport
         siteRows={siteRows}
         contractorRows={contractorRows}
