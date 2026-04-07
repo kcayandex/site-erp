@@ -7,7 +7,6 @@ import {
   LayoutDashboard,
   Building2,
   FileText,
-  TrendingUp,
   HardHat,
   BarChart3,
 } from "lucide-react";
@@ -20,8 +19,7 @@ const navItems = [
 ];
 
 const adminItems = [
-  { href: "/admin/kar-raporu", label: "Kar Raporu", icon: TrendingUp },
-  { href: "/admin/contractor-report", label: "Contractor Raporu", icon: BarChart3 },
+  { href: "/admin/rapor", label: "Rapor", icon: BarChart3 },
 ];
 
 export default function Sidebar({ isAdmin }: { isAdmin: boolean }) {
