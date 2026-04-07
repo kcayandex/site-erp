@@ -46,13 +46,13 @@ export default function UnifiedReport({ siteRows, contractorRows, periodLabel }:
     islenen: a.islenen + r.total_islenen,
     odenen: a.odenen + r.total_odenen,
     profit: a.profit + r.profit,
-  }), { islenen: 0, odened: 0, profit: 0 })
+  }), { islenen: 0, odenen: 0, profit: 0 })
 
   const ctTotals = contractorRows.reduce((a, r) => ({
     islenen: a.islenen + r.total_islenen,
-    odened: a.odened + r.total_odenen,
+    odenen: a.odenen + r.total_odenen,
     profit: a.profit + r.profit,
-  }), { islenen: 0, odened: 0, profit: 0 })
+  }), { islenen: 0, odenen: 0, profit: 0 })
 
   const activeTotals = tab === "site" ? siteTotals : ctTotals
 
@@ -67,7 +67,7 @@ export default function UnifiedReport({ siteRows, contractorRows, periodLabel }:
         </div>
         <div className="bg-orange-50 border border-orange-200 rounded-xl p-5">
           <p className="text-xs font-semibold text-orange-500 uppercase tracking-wide">Toplam Ödenen</p>
-          <p className="text-2xl font-bold text-orange-700 mt-1">₺{fmt(activeTotals.odened)}</p>
+          <p className="text-2xl font-bold text-orange-700 mt-1">₺{fmt(activeTotals.odenen)}</p>
         </div>
         <div className={`rounded-xl p-5 border ${activeTotals.profit >= 0 ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"}`}>
           <p className={`text-xs font-semibold uppercase tracking-wide ${activeTotals.profit >= 0 ? "text-green-500" : "text-red-500"}`}>
