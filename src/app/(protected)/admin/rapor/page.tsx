@@ -196,6 +196,7 @@ export default async function RaporPage({
     site_name: r.site_name,
     islenen: r.total_islenen,
     kar: r.profit,
+    margin: r.total_islenen > 0 ? (r.profit / r.total_islenen) * 100 : 0,
   }))
 
   const chartContractors = contractorRows
