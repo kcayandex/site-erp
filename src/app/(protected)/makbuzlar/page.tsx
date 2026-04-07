@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { Plus, FileText, Printer } from "lucide-react";
+import ReceiptActions from "@/components/receipts/ReceiptActions";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 
@@ -38,7 +39,7 @@ export default async function ReceiptsPage() {
                 <th className="text-left px-6 py-3 font-semibold text-gray-600">Makbuz No</th>
                 <th className="text-left px-6 py-3 font-semibold text-gray-600">Site</th>
                 <th className="text-left px-6 py-3 font-semibold text-gray-600">Tarih</th>
-                <th className="text-left px-6 py-3 font-semibold text-gray-600">Açıklama</th>
+                <th className="text-left px-6 py-3 font-semibold text-gray-600">Kategori</th>
                 <th className="text-right px-6 py-3 font-semibold text-gray-600">Toplam (İşlenen)</th>
                 <th className="px-6 py-3"></th>
               </tr>
@@ -56,7 +57,7 @@ export default async function ReceiptsPage() {
                     {format(new Date(receipt.date), "dd MMM yyyy", { locale: tr })}
                   </td>
                   <td className="px-6 py-4 text-gray-600 max-w-xs truncate">
-                    {receipt.payment_description ?? "-"}
+                    {receipt.category ?? "-"}
                   </td>
                   <td className="px-6 py-4 text-right font-semibold text-gray-800">
                     ₺{Number(receipt.total_islenen).toLocaleString("tr-TR", {
@@ -80,6 +81,7 @@ export default async function ReceiptsPage() {
                       >
                         <Printer size={16} />
                       </Link>
+                      <ReceiptActions receiptId={receipt.id} />
                     </div>
                   </td>
                 </tr>

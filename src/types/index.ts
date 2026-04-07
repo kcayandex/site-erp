@@ -25,6 +25,7 @@ export interface Receipt {
   serial_no: string;
   sequence_no: number;
   date: string;
+  category: string | null;
   payment_description: string | null;
   items: ReceiptItem[];
   total_islenen: number;

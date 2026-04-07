@@ -73,7 +73,12 @@ function ReceiptCopy({
 
       {/* Payment description */}
       <div style={{ border: "1px solid #ccc", padding: "6px 10px", marginBottom: "8px", minHeight: "28px", fontSize: "10px", color: "#555" }}>
-        ÖDEME AÇIKLAMASI: {receipt.payment_description ?? ""}
+        <span style={{ fontWeight: "bold" }}>KATEGORİ:</span> {receipt.category ?? ""}
+        {receipt.payment_description && (
+          <span style={{ marginLeft: "16px" }}>
+            <span style={{ fontWeight: "bold" }}>AÇIKLAMA:</span> {receipt.payment_description}
+          </span>
+        )}
       </div>
 
       {/* Items table */}
