@@ -178,7 +178,7 @@ export default function ReportCharts({ monthly, sites, contractors, totalIslenen
               <div className="flex gap-2 text-xs">
                 <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-500 inline-block" />≥%20</span>
                 <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-400 inline-block" />%10–20</span>
-                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-400 inline-block" /><%10</span>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-400 inline-block" />{"<"}%10</span>
               </div>
             </div>
             <p className="text-xs text-gray-400 mb-4">Kâr miktarı · renk = marj oranı</p>
