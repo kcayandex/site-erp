@@ -11,7 +11,6 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-  TooltipProps,
 } from "recharts"
 
 export interface MonthlyPoint {
@@ -45,7 +44,13 @@ function tl(n: number) {
   return "₺" + n.toLocaleString("tr-TR", { minimumFractionDigits: 0, maximumFractionDigits: 0 })
 }
 
-function CustomTooltip({ active, payload, label }: TooltipProps<number, string>) {
+interface TooltipEntry {
+  name: string
+  value: number
+  color: string
+}
+
+function CustomTooltip({ active, payload, label }: { active?: boolean; payload?: TooltipEntry[]; label?: string }) {
   if (!active || !payload?.length) return null
   return (
     <div className="bg-white border border-gray-200 rounded-lg shadow-lg px-4 py-3 text-sm">
@@ -53,7 +58,7 @@ function CustomTooltip({ active, payload, label }: TooltipProps<number, string>)
       {payload.map((p) => (
         <p key={p.name} style={{ color: p.color }} className="flex justify-between gap-4">
           <span>{p.name}</span>
-          <span className="font-medium">{tl(p.value as number)}</span>
+          <span className="font-medium">{tl(p.value)}</span>
         </p>
       ))}
     </div>
