@@ -82,7 +82,7 @@ export default async function RaporPage({
   const { data: receipts } = await supabase
     .from("receipts")
     .select(
-      "site_id, contractor_id, total_islenen, total_odenen, site:sites(name), contractor:contractors(name)",
+      "id, site_id, contractor_id, receipt_no, date, category, total_islenen, total_odenen, site:sites(name), contractor:contractors(name)",
     )
     .gte("date", start)
     .lte("date", end)
@@ -164,6 +164,23 @@ export default async function RaporPage({
     .map(([contractor_id, v]) => ({ contractor_id, ...v }))
     .sort((a, b) => b.total_islenen - a.total_islenen)
 
+  const detailReceipts = (receipts ?? []).map((r) => {
+    const site = Array.isArray(r.site) ? r.site[0] : r.site
+    const ct = Array.isArray(r.contractor) ? r.contractor[0] : r.contractor
+    return {
+      id: r.id as string,
+      receipt_no: r.receipt_no as string,
+      date: r.date as string,
+      category: r.category as string | null,
+      site_id: r.site_id as string,
+      site_name: (site as { name: string } | null)?.name ?? (r.site_id as string),
+      contractor_id: r.contractor_id as string | null,
+      contractor_name: (ct as { name: string } | null)?.name ?? null,
+      total_islenen: Number(r.total_islenen ?? 0),
+      total_odenen: Number(r.total_odenen ?? 0),
+    }
+  })
+
   return (
     <div className="space-y-6">
       <div>
@@ -177,6 +194,7 @@ export default async function RaporPage({
         siteRows={siteRows}
         contractorRows={contractorRows}
         periodLabel={label}
+        receipts={detailReceipts}
       />
     </div>
   )
