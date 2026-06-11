@@ -117,18 +117,15 @@ export default function ReceiptForm({ sites, contractors, existingReceipt }: Pro
       }
 
       router.push("/makbuzlar");
-      router.refresh();
     } else {
-      // Get next sequence
-      const { data: seqData } = await supabase.rpc("get_next_sequence", {
-        p_site_id: siteId,
-        p_serial_no: serialNo,
-      });
+      // Get next sequence and current user in parallel
+      const [{ data: seqData }, { data: { user } }] = await Promise.all([
+        supabase.rpc("get_next_sequence", { p_site_id: siteId, p_serial_no: serialNo }),
+        supabase.auth.getUser(),
+      ]);
 
       const seq = seqData ?? 1;
       const receiptNo = buildReceiptNo(site.abbreviation, year, seq);
-
-      const { data: { user } } = await supabase.auth.getUser();
 
       const { error: insertError } = await supabase.from("receipts").insert({
         site_id: siteId,
@@ -154,7 +151,6 @@ export default function ReceiptForm({ sites, contractors, existingReceipt }: Pro
       }
 
       router.push("/makbuzlar");
-      router.refresh();
     }
   }
 
