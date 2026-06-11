@@ -59,18 +59,9 @@ export default async function RaporPage({
 }) {
   const supabase = await createClient()
 
-  // Admin check
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  const { data: roleData } = await supabase
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", user!.id)
-    .single()
-
-  if (roleData?.role !== "admin") redirect("/dashboard")
+  // Admin check via SECURITY DEFINER RPC (bypasses RLS)
+  const { data: role } = await supabase.rpc("get_my_role")
+  if (role !== "admin" && role !== "superadmin") redirect("/dashboard")
 
   const period = searchParams.period ?? "month"
   const { start, end, label } = getDateRange(

@@ -5,14 +5,8 @@ import ContractorReport from "@/components/admin/ContractorReport"
 export default async function ContractorReportPage() {
   const supabase = await createClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
-  const { data: roleData } = await supabase
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", user!.id)
-    .single()
-
-  if (roleData?.role !== "admin") redirect("/dashboard")
+  const { data: role } = await supabase.rpc("get_my_role")
+  if (role !== "admin" && role !== "superadmin") redirect("/dashboard")
 
   const { data: receipts } = await supabase
     .from("receipts")

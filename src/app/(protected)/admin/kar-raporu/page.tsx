@@ -5,13 +5,8 @@ import ProfitReport from "@/components/admin/ProfitReport";
 export default async function ProfitReportPage() {
   const supabase = await createClient();
 
-  // Admin check
-  const { data: roleData } = await supabase
-    .from("user_roles")
-    .select("role")
-    .single();
-
-  if (roleData?.role !== "admin") redirect("/dashboard");
+  const { data: role } = await supabase.rpc("get_my_role");
+  if (role !== "admin" && role !== "superadmin") redirect("/dashboard");
 
   const { data: receipts } = await supabase
     .from("receipts")
