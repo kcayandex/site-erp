@@ -21,7 +21,7 @@ export default async function ProtectedLayout({
     .eq("user_id", session.user.id)
     .single();
 
-  const isAdmin = roleData?.role === "admin";
+  const isAdmin = roleData?.role === "admin" || roleData?.role === "superadmin";
 
   return (
     <div className="flex h-screen bg-gray-50">
