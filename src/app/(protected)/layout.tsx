@@ -1,5 +1,3 @@
-export const dynamic = 'force-dynamic'
-
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
@@ -11,14 +9,16 @@ export default async function ProtectedLayout({
   children: React.ReactNode;
 }) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  // getSession reads from the cookie — no extra network call.
+  // Middleware already validates the JWT on every request.
+  const { data: { session } } = await supabase.auth.getSession();
 
-  if (!user) redirect("/giris");
+  if (!session) redirect("/giris");
 
   const { data: roleData } = await supabase
     .from("user_roles")
     .select("role")
-    .eq("user_id", user.id)
+    .eq("user_id", session.user.id)
     .single();
 
   const isAdmin = roleData?.role === "admin";
@@ -27,7 +27,7 @@ export default async function ProtectedLayout({
     <div className="flex h-screen bg-gray-50">
       <Sidebar isAdmin={isAdmin} />
       <div className="flex flex-col flex-1 overflow-hidden">
-        <Header userEmail={user.email ?? ""} />
+        <Header userEmail={session.user.email ?? ""} />
         <main className="flex-1 overflow-y-auto p-6 print:p-0 print:overflow-visible">{children}</main>
       </div>
     </div>
