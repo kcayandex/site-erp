@@ -1,5 +1,4 @@
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { redirect } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
@@ -16,14 +15,10 @@ export default async function ProtectedLayout({
 
   if (!session) redirect("/giris");
 
-  const adminClient = createAdminClient();
-  const { data: roleData } = await adminClient
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", session.user.id)
-    .single();
+  // SECURITY DEFINER function bypasses RLS, always returns correct role
+  const { data: role } = await supabase.rpc("get_my_role");
 
-  const isAdmin = roleData?.role === "admin" || roleData?.role === "superadmin";
+  const isAdmin = role === "admin" || role === "superadmin";
 
   return (
     <div className="flex h-screen bg-gray-50">
