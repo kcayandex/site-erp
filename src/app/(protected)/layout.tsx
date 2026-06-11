@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { redirect } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
@@ -15,7 +16,8 @@ export default async function ProtectedLayout({
 
   if (!session) redirect("/giris");
 
-  const { data: roleData } = await supabase
+  const adminClient = createAdminClient();
+  const { data: roleData } = await adminClient
     .from("user_roles")
     .select("role")
     .eq("user_id", session.user.id)
