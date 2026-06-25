@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { Partner, KasaSettlement } from "@/types";
+import KasaDistributions from "./KasaDistributions";
 import {
   TrendingUp, Wallet, TrendingDown, Users,
   AlertTriangle, CheckCircle2, Lock,
@@ -347,6 +348,9 @@ export default function KasaDashboard() {
               )}
             </div>
           </div>
+
+          {/* Distribution records */}
+          <KasaDistributions partners={partners} />
 
           {/* Unpaid monthly fees */}
           {data.unpaidSites.length > 0 && (

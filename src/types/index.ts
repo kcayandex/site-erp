@@ -103,6 +103,14 @@ export interface Receipt {
   created_by: string | null;
 }
 
+export interface KasaDistribution {
+  id: string;
+  distribution_date: string;
+  partner_amounts: Record<string, number>;
+  notes: string | null;
+  created_at: string;
+}
+
 export interface ProfitReport {
   site_id: string;
   site_name: string;
