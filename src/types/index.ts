@@ -16,7 +16,34 @@ export interface Site {
   address: string;
   abbreviation: string;
   vergi_no: string | null;
+  monthly_fee: number;
   is_active: boolean;
+  created_at: string;
+}
+
+export interface MonthlyPayment {
+  id: string;
+  site_id: string;
+  site?: Site;
+  year: number;
+  month: number;
+  amount: number;
+  paid_at: string | null;
+  payment_method: "nakit" | "havale" | null;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface CompanyExpense {
+  id: string;
+  amount: number;
+  description: string;
+  category: string | null;
+  expense_date: string;
+  paid_by: "kasa" | "ortak1" | "ortak2";
+  reimbursed: boolean;
+  reimbursed_at: string | null;
+  notes: string | null;
   created_at: string;
 }
 

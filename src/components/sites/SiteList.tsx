@@ -12,9 +12,10 @@ interface SiteFormData {
   address: string;
   abbreviation: string;
   vergi_no: string;
+  monthly_fee: string;
 }
 
-const EMPTY_FORM: SiteFormData = { name: "", address: "", abbreviation: "", vergi_no: "" };
+const EMPTY_FORM: SiteFormData = { name: "", address: "", abbreviation: "", vergi_no: "", monthly_fee: "" };
 
 export default function SiteList({
   sites,
@@ -46,6 +47,7 @@ export default function SiteList({
       address: site.address,
       abbreviation: site.abbreviation,
       vergi_no: site.vergi_no ?? "",
+      monthly_fee: String(site.monthly_fee ?? 0),
     });
     setShowForm(true);
     setError(null);
@@ -72,6 +74,7 @@ export default function SiteList({
           address: form.address,
           abbreviation: form.abbreviation.toUpperCase(),
           vergi_no: form.vergi_no || null,
+          monthly_fee: parseFloat(form.monthly_fee) || 0,
         })
         .eq("id", editingSite.id);
 
@@ -86,6 +89,7 @@ export default function SiteList({
         address: form.address,
         abbreviation: form.abbreviation.toUpperCase(),
         vergi_no: form.vergi_no || null,
+        monthly_fee: parseFloat(form.monthly_fee) || 0,
         is_active: true,
       });
 
@@ -199,6 +203,22 @@ export default function SiteList({
                   placeholder="1234567890"
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Aylık Yönetim Ücreti (₺)
+                </label>
+                <input
+                  type="number"
+                  value={form.monthly_fee}
+                  onChange={(e) =>
+                    setForm((p) => ({ ...p, monthly_fee: e.target.value }))
+                  }
+                  min="0"
+                  step="0.01"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="0.00"
+                />
+              </div>
             </div>
 
             {error && (
@@ -275,6 +295,9 @@ export default function SiteList({
             {site.vergi_no && (
               <p className="text-xs text-gray-400 mt-1">Vergi No: {site.vergi_no}</p>
             )}
+            <p className="text-xs text-blue-600 font-semibold mt-1">
+              Aylık Ücret: ₺{Number(site.monthly_fee).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+            </p>
             <div className="mt-2">
               <span
                 className={`text-xs px-2 py-0.5 rounded-full font-medium ${

@@ -9,6 +9,9 @@ import {
   FileText,
   HardHat,
   BarChart3,
+  CalendarCheck,
+  Receipt,
+  Vault,
 } from "lucide-react";
 
 const navItems = [
@@ -16,6 +19,9 @@ const navItems = [
   { href: "/siteler", label: "Siteler", icon: Building2 },
   { href: "/contractors", label: "Contractors", icon: HardHat },
   { href: "/makbuzlar", label: "Makbuzlar", icon: FileText },
+  { href: "/aylik-ucretler", label: "Aylık Ücretler", icon: CalendarCheck },
+  { href: "/giderler", label: "Giderler", icon: Receipt },
+  { href: "/kasa", label: "Kasa", icon: Vault },
 ];
 
 const adminItems = [
