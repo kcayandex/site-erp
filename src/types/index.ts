@@ -31,6 +31,15 @@ export interface Partner {
   created_at: string;
 }
 
+export interface KasaSettlement {
+  id: string;
+  year: number;
+  month: number;
+  total_distributed: number | null;
+  notes: string | null;
+  settled_at: string;
+}
+
 export interface SiteFeePeriod {
   id: string;
   site_id: string;

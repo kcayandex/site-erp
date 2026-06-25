@@ -2,8 +2,13 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
-import type { Partner } from "@/types";
-import { TrendingUp, Wallet, TrendingDown, Users, AlertCircle, AlertTriangle } from "lucide-react";
+import type { Partner, KasaSettlement } from "@/types";
+import {
+  TrendingUp, Wallet, TrendingDown, Users,
+  AlertTriangle, CheckCircle2, Lock,
+} from "lucide-react";
+import { format } from "date-fns";
+import { tr } from "date-fns/locale";
 
 const MONTHS = [
   "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
@@ -25,15 +30,21 @@ export default function KasaDashboard() {
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [data, setData] = useState<MonthData | null>(null);
   const [partners, setPartners] = useState<Partner[]>([]);
+  const [settlement, setSettlement] = useState<KasaSettlement | null>(null);
   const [loading, setLoading] = useState(true);
+  const [settling, setSettling] = useState(false);
   const supabase = createClient();
 
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-
+  const getDateRange = useCallback(() => {
     const startDate = `${year}-${String(month).padStart(2, "0")}-01`;
     const lastDay = new Date(year, month, 0).getDate();
     const endDate = `${year}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+    return { startDate, endDate };
+  }, [year, month]);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    const { startDate, endDate } = getDateRange();
 
     const [
       { data: receipts },
@@ -41,15 +52,18 @@ export default function KasaDashboard() {
       { data: sites },
       { data: expenses },
       { data: partnerData },
+      { data: settlementData },
     ] = await Promise.all([
       supabase.from("receipts").select("total_islenen, total_odened").gte("date", startDate).lte("date", endDate),
       supabase.from("monthly_payments").select("amount, site_id").eq("year", year).eq("month", month).not("paid_at", "is", null),
       supabase.from("sites").select("id, name, monthly_fee").eq("is_active", true),
       supabase.from("company_expenses").select("amount, description, paid_by, reimbursed").gte("expense_date", startDate).lte("expense_date", endDate),
       supabase.from("partners").select("*").eq("is_active", true).order("created_at"),
+      supabase.from("kasa_settlements").select("*").eq("year", year).eq("month", month).maybeSingle(),
     ]);
 
     setPartners((partnerData ?? []) as Partner[]);
+    setSettlement(settlementData as KasaSettlement | null);
 
     const totalKar = (receipts ?? []).reduce(
       (sum, r) => sum + (Number(r.total_islenen) - Number(r.total_odened)), 0
@@ -68,7 +82,7 @@ export default function KasaDashboard() {
 
     setData({ totalKar, totalFees, totalExpenses, unpaidSites, pendingReimbursements });
     setLoading(false);
-  }, [year, month, supabase]);
+  }, [year, month, supabase, getDateRange]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -77,8 +91,49 @@ export default function KasaDashboard() {
     return p?.name ?? "Bilinmeyen";
   }
 
+  async function handleSettle() {
+    if (!data) return;
+    if (!confirm(`${MONTHS[month - 1]} ${year} ayını kapatmak istediğinize emin misiniz?\n\nBu işlem:\n• Kişisel ödenen giderleri "iade edildi" olarak işaretler\n• Dağıtım kaydını oluşturur\n\nGeri alınamaz.`)) return;
+
+    setSettling(true);
+    const { startDate, endDate } = getDateRange();
+
+    await Promise.all([
+      supabase
+        .from("company_expenses")
+        .update({ reimbursed: true, reimbursed_at: new Date().toISOString() })
+        .neq("paid_by", "kasa")
+        .eq("reimbursed", false)
+        .gte("expense_date", startDate)
+        .lte("expense_date", endDate),
+      supabase.from("kasa_settlements").insert({
+        year,
+        month,
+        total_distributed: net,
+      }),
+    ]);
+
+    setSettling(false);
+    fetchData();
+  }
+
+  async function handleUndoSettle() {
+    if (!settlement) return;
+    if (!confirm("Ayı yeniden açmak istediğinize emin misiniz?")) return;
+    await supabase.from("kasa_settlements").delete().eq("id", settlement.id);
+    fetchData();
+  }
+
   const net = data ? data.totalKar + data.totalFees - data.totalExpenses : 0;
   const totalPct = partners.reduce((s, p) => s + Number(p.share_percentage), 0);
+
+  // Per-partner owed reimbursements
+  const partnerReimbursements: Record<string, number> = {};
+  (data?.pendingReimbursements ?? []).forEach((e) => {
+    partnerReimbursements[e.paid_by] = (partnerReimbursements[e.paid_by] ?? 0) + e.amount;
+  });
+
+  const totalReimbursements = Object.values(partnerReimbursements).reduce((s, v) => s + v, 0);
 
   return (
     <div className="space-y-6">
@@ -92,6 +147,14 @@ export default function KasaDashboard() {
           className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
           {YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
         </select>
+
+        {/* Settlement badge */}
+        {!loading && settlement && (
+          <span className="flex items-center gap-1.5 text-sm font-medium text-green-700 bg-green-50 border border-green-200 px-3 py-1.5 rounded-full">
+            <CheckCircle2 size={14} />
+            Kapatıldı — {format(new Date(settlement.settled_at), "dd MMM yyyy", { locale: tr })}
+          </span>
+        )}
       </div>
 
       {loading ? (
@@ -162,9 +225,9 @@ export default function KasaDashboard() {
             </div>
           </div>
 
-          {/* Partner split — dynamic */}
+          {/* Partner distribution */}
           <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-2">
                 <Users size={16} className="text-gray-500" />
                 <h3 className="font-semibold text-gray-700">Ortak Dağılımı</h3>
@@ -179,42 +242,83 @@ export default function KasaDashboard() {
             {partners.length === 0 ? (
               <p className="text-sm text-gray-400 text-center py-4">Ortaklar sayfasından ortak ekleyin.</p>
             ) : (
-              <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${Math.min(partners.length, 3)}, 1fr)` }}>
+              <div className="space-y-3">
                 {partners.map((partner) => {
-                  const share = net * (Number(partner.share_percentage) / 100);
+                  const profitShare = net * (Number(partner.share_percentage) / 100);
+                  const owed = partnerReimbursements[partner.id] ?? 0;
+                  const total = profitShare + owed;
                   return (
-                    <div key={partner.id} className="bg-gray-50 rounded-xl p-4 text-center">
-                      <p className="text-sm text-gray-500 mb-1">{partner.name}</p>
-                      <p className={`text-xl font-bold ${share >= 0 ? "text-gray-800" : "text-red-600"}`}>
-                        ₺{share.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
-                      </p>
-                      <p className="text-xs text-gray-400 mt-1">%{partner.share_percentage}</p>
+                    <div key={partner.id} className="bg-gray-50 rounded-xl p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <p className="font-semibold text-gray-800">{partner.name}</p>
+                        <span className="text-xs text-gray-400 bg-white border border-gray-200 px-2 py-0.5 rounded-full">
+                          %{partner.share_percentage}
+                        </span>
+                      </div>
+                      <div className="space-y-1.5 text-sm">
+                        <div className="flex justify-between text-gray-600">
+                          <span>Kar Payı</span>
+                          <span className={profitShare >= 0 ? "font-medium text-gray-800" : "font-medium text-red-600"}>
+                            ₺{profitShare.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                          </span>
+                        </div>
+                        {owed > 0 && (
+                          <div className="flex justify-between text-amber-700">
+                            <span>İade Alacağı</span>
+                            <span className="font-medium">
+                              + ₺{owed.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                            </span>
+                          </div>
+                        )}
+                        <div className="flex justify-between pt-2 border-t border-gray-200 font-bold text-base">
+                          <span className="text-gray-700">Kasadan Alacağı</span>
+                          <span className={total >= 0 ? "text-gray-900" : "text-red-600"}>
+                            ₺{total.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   );
                 })}
+
+                {/* Total line */}
+                <div className="flex justify-between items-center px-4 py-3 bg-gray-900 rounded-xl text-white">
+                  <span className="text-sm font-medium">Kasadan Toplam Çıkış</span>
+                  <span className="font-bold text-lg">
+                    ₺{(net + totalReimbursements).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
               </div>
             )}
 
-            {/* Pending reimbursements */}
-            {data.pendingReimbursements.length > 0 && (
-              <div className="mt-5 bg-amber-50 border border-amber-200 rounded-xl p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <AlertCircle size={15} className="text-amber-600" />
-                  <p className="text-sm font-semibold text-amber-800">İade Bekleyen Kişisel Giderler</p>
+            {/* Settle / Undo button */}
+            <div className="mt-5 pt-5 border-t border-gray-100">
+              {settlement ? (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-green-700">
+                    <Lock size={15} />
+                    <span className="text-sm font-medium">
+                      Bu ay kapatıldı — {format(new Date(settlement.settled_at), "dd MMMM yyyy, HH:mm", { locale: tr })}
+                    </span>
+                  </div>
+                  <button
+                    onClick={handleUndoSettle}
+                    className="text-xs text-gray-400 hover:text-red-500 transition"
+                  >
+                    Yeniden Aç
+                  </button>
                 </div>
-                <div className="space-y-1.5">
-                  {data.pendingReimbursements.map((e, i) => (
-                    <div key={i} className="flex justify-between text-sm text-amber-700">
-                      <span>
-                        {e.description}{" "}
-                        <span className="text-amber-500 text-xs">({getPartnerName(e.paid_by)})</span>
-                      </span>
-                      <span className="font-semibold">₺{e.amount.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+              ) : (
+                <button
+                  onClick={handleSettle}
+                  disabled={settling || partners.length === 0}
+                  className="w-full bg-gray-900 hover:bg-gray-800 text-white font-semibold text-sm py-3 rounded-xl transition disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  <Lock size={15} />
+                  {settling ? "Kapatılıyor..." : `${MONTHS[month - 1]} ${year} Ayını Kapat — Kasayı Sıfırla`}
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Unpaid monthly fees */}
