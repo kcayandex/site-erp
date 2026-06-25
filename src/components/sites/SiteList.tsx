@@ -121,6 +121,7 @@ export default function SiteList({
       if (value) {
         const d = new Date(value);
         d.setFullYear(d.getFullYear() + 1);
+        d.setDate(d.getDate() - 1);
         endDate = d.toISOString().split("T")[0];
       }
       return { ...prev, contract_start_date: value, contract_end_date: endDate };
