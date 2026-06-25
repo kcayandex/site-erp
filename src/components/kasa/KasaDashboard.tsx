@@ -18,7 +18,8 @@ const YEARS = [2024, 2025, 2026, 2027];
 
 interface MonthData {
   totalKar: number;
-  totalFees: number;
+  totalFeesCash: number;
+  totalFeesBank: number;
   totalExpenses: number;
   unpaidSites: { name: string; monthly_fee: number }[];
   pendingReimbursements: { description: string; amount: number; paid_by: string }[];
@@ -55,7 +56,7 @@ export default function KasaDashboard() {
       { data: settlementData },
     ] = await Promise.all([
       supabase.from("receipts").select("total_islenen, total_odened").gte("date", startDate).lte("date", endDate),
-      supabase.from("monthly_payments").select("amount, site_id").eq("year", year).eq("month", month).not("paid_at", "is", null),
+      supabase.from("monthly_payments").select("amount, site_id, payment_method").eq("year", year).eq("month", month).not("paid_at", "is", null),
       supabase.from("sites").select("id, name, monthly_fee").eq("is_active", true),
       supabase.from("company_expenses").select("amount, description, paid_by, reimbursed").gte("expense_date", startDate).lte("expense_date", endDate),
       supabase.from("partners").select("*").eq("is_active", true).order("created_at"),
@@ -68,7 +69,8 @@ export default function KasaDashboard() {
     const totalKar = (receipts ?? []).reduce(
       (sum, r) => sum + (Number(r.total_islenen) - Number(r.total_odened)), 0
     );
-    const totalFees = (payments ?? []).reduce((sum, p) => sum + Number(p.amount), 0);
+    const totalFeesCash = (payments ?? []).filter((p) => p.payment_method === "nakit").reduce((sum, p) => sum + Number(p.amount), 0);
+    const totalFeesBank = (payments ?? []).filter((p) => p.payment_method === "havale").reduce((sum, p) => sum + Number(p.amount), 0);
     const totalExpenses = (expenses ?? []).reduce((sum, e) => sum + Number(e.amount), 0);
 
     const paidSiteIds = new Set((payments ?? []).map((p) => p.site_id));
@@ -80,7 +82,7 @@ export default function KasaDashboard() {
       .filter((e) => e.paid_by !== "kasa" && !e.reimbursed)
       .map((e) => ({ description: e.description, amount: Number(e.amount), paid_by: e.paid_by }));
 
-    setData({ totalKar, totalFees, totalExpenses, unpaidSites, pendingReimbursements });
+    setData({ totalKar, totalFeesCash, totalFeesBank, totalExpenses, unpaidSites, pendingReimbursements });
     setLoading(false);
   }, [year, month, supabase, getDateRange]);
 
@@ -124,7 +126,7 @@ export default function KasaDashboard() {
     fetchData();
   }
 
-  const net = data ? data.totalKar + data.totalFees - data.totalExpenses : 0;
+  const net = data ? data.totalKar + data.totalFeesCash - data.totalExpenses : 0;
   const totalPct = partners.reduce((s, p) => s + Number(p.share_percentage), 0);
 
   // Per-partner owed reimbursements
@@ -161,7 +163,7 @@ export default function KasaDashboard() {
         <div className="text-center py-20 text-gray-400">Yükleniyor...</div>
       ) : data && (
         <>
-          {/* 4 summary cards */}
+          {/* Summary cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-blue-50 border border-blue-100 rounded-xl p-5">
               <div className="flex items-center gap-2 mb-2">
@@ -176,12 +178,12 @@ export default function KasaDashboard() {
             <div className="bg-green-50 border border-green-100 rounded-xl p-5">
               <div className="flex items-center gap-2 mb-2">
                 <Wallet size={18} className="text-green-600" />
-                <p className="text-xs text-gray-500">Aylık Ücretler</p>
+                <p className="text-xs text-gray-500">Nakit Ücretler</p>
               </div>
               <p className="text-xl font-bold text-green-700">
-                ₺{data.totalFees.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                ₺{data.totalFeesCash.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
               </p>
-              <p className="text-xs text-gray-400 mt-1">Tahsil edilenler</p>
+              <p className="text-xs text-gray-400 mt-1">Kasaya giren</p>
             </div>
             <div className="bg-red-50 border border-red-100 rounded-xl p-5">
               <div className="flex items-center gap-2 mb-2">
@@ -193,12 +195,31 @@ export default function KasaDashboard() {
               </p>
             </div>
             <div className="bg-gray-900 rounded-xl p-5">
-              <p className="text-xs text-gray-400 mb-2">Net KTurkey Geliri</p>
+              <p className="text-xs text-gray-400 mb-2">Net Kasa</p>
               <p className={`text-2xl font-bold ${net >= 0 ? "text-white" : "text-red-400"}`}>
                 ₺{net.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
               </p>
+              <p className="text-xs text-gray-500 mt-1">Dağıtılacak</p>
             </div>
           </div>
+
+          {/* Bank account info — havale fees */}
+          {data.totalFeesBank > 0 && (
+            <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="bg-indigo-100 text-indigo-600 rounded-lg p-2">
+                  <Wallet size={16} />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-indigo-800">Banka Hesabı — Havale Ücretler</p>
+                  <p className="text-xs text-indigo-500 mt-0.5">Bu tutar kasaya girmez, dağıtıma dahil değildir</p>
+                </div>
+              </div>
+              <p className="text-xl font-bold text-indigo-700">
+                ₺{data.totalFeesBank.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+              </p>
+            </div>
+          )}
 
           {/* Breakdown */}
           <div className="bg-white rounded-xl border border-gray-200 p-6">
@@ -209,15 +230,21 @@ export default function KasaDashboard() {
                 <span className="font-semibold text-blue-700">₺{data.totalKar.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}</span>
               </div>
               <div className="flex justify-between py-3">
-                <span className="text-gray-600">+ Tahsil Edilen Aylık Ücretler</span>
-                <span className="font-semibold text-green-700">₺{data.totalFees.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}</span>
+                <span className="text-gray-600">+ Nakit Aylık Ücretler</span>
+                <span className="font-semibold text-green-700">₺{data.totalFeesCash.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}</span>
               </div>
+              {data.totalFeesBank > 0 && (
+                <div className="flex justify-between py-2 opacity-50">
+                  <span className="text-gray-500 text-xs italic">Havale ücretler (banka — dahil değil)</span>
+                  <span className="text-xs text-indigo-600">₺{data.totalFeesBank.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}</span>
+                </div>
+              )}
               <div className="flex justify-between py-3">
                 <span className="text-gray-600">− Şirket Giderleri</span>
                 <span className="font-semibold text-red-600">₺{data.totalExpenses.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}</span>
               </div>
               <div className="flex justify-between py-4 font-bold text-base">
-                <span className="text-gray-800">= Net Dağıtılabilir Kar</span>
+                <span className="text-gray-800">= Net Kasa (Dağıtılacak)</span>
                 <span className={net >= 0 ? "text-gray-900" : "text-red-600"}>
                   ₺{net.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
                 </span>
