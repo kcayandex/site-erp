@@ -4,14 +4,12 @@ import SiteList from "@/components/sites/SiteList";
 export default async function SitesPage() {
   const supabase = await createClient();
 
-  const { data: { user } } = await supabase.auth.getUser();
-
   const [{ data: sites }, { data: roleData }] = await Promise.all([
     supabase.from("sites").select("*").order("name"),
-    supabase.from("user_roles").select("role").eq("user_id", user!.id).single(),
+    supabase.rpc("get_my_role"),
   ]);
 
-  const isAdmin = roleData?.role === "admin";
+  const isAdmin = roleData === "admin" || roleData === "superadmin";
 
   return (
     <div className="space-y-6">
