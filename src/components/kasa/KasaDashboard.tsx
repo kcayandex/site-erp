@@ -61,7 +61,7 @@ export default function KasaDashboard() {
       supabase.from("receipts").select("total_islenen, total_odenen").gte("date", startDate).lte("date", endDate),
       supabase.from("monthly_payments").select("amount, site_id, payment_method").eq("year", year).eq("month", month).not("paid_at", "is", null),
       supabase.from("sites").select("id, name, monthly_fee").eq("is_active", true),
-      supabase.from("company_expenses").select("amount, description, paid_by, reimbursed").gte("expense_date", startDate).lte("expense_date", endDate),
+      supabase.from("company_expenses").select("amount, description, paid_by, reimbursed, reimbursed_amount").gte("expense_date", startDate).lte("expense_date", endDate),
       supabase.from("partners").select("*").eq("is_active", true).order("created_at"),
       supabase.from("kasa_settlements").select("*").eq("year", year).eq("month", month).maybeSingle(),
       supabase.from("kasa_distributions").select("partner_amounts").gte("distribution_date", startDate).lte("distribution_date", endDate),
@@ -87,7 +87,12 @@ export default function KasaDashboard() {
 
     const pendingReimbursements = (expenses ?? [])
       .filter((e) => e.paid_by !== "kasa" && !e.reimbursed)
-      .map((e) => ({ description: e.description, amount: Number(e.amount), paid_by: e.paid_by }));
+      .map((e) => ({
+        description: e.description,
+        amount: Number(e.amount) - Number(e.reimbursed_amount ?? 0),
+        paid_by: e.paid_by,
+      }))
+      .filter((e) => e.amount > 0);
 
     setData({ totalKar, totalFeesCash, totalFeesBank, totalExpenses, totalDistributed, unpaidSites, pendingReimbursements });
     setLoading(false);

@@ -47,6 +47,7 @@ export default function ExpenseList({
   const [form, setForm] = useState<ExpenseForm>(emptyForm());
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [partialPay, setPartialPay] = useState<{ id: string; input: string } | null>(null);
   const supabase = createClient();
   const router = useRouter();
 
@@ -85,6 +86,21 @@ export default function ExpenseList({
         reimbursed_at: !expense.reimbursed ? format(new Date(), "yyyy-MM-dd") : null,
       })
       .eq("id", expense.id);
+    router.refresh();
+  }
+
+  async function handlePartialPay(expense: CompanyExpense) {
+    if (!partialPay) return;
+    const addAmount = parseFloat(partialPay.input);
+    if (isNaN(addAmount) || addAmount <= 0) { alert("Geçerli bir tutar girin"); return; }
+    const newReimbursed = Number(expense.reimbursed_amount) + addAmount;
+    const fullyPaid = newReimbursed >= Number(expense.amount);
+    await supabase.from("company_expenses").update({
+      reimbursed_amount: newReimbursed,
+      reimbursed: fullyPaid,
+      reimbursed_at: fullyPaid ? new Date().toISOString() : null,
+    }).eq("id", expense.id);
+    setPartialPay(null);
     router.refresh();
   }
 
@@ -237,18 +253,58 @@ export default function ExpenseList({
                     </td>
                     <td className="px-6 py-4">
                       {isPartner ? (
-                        <button
-                          onClick={() => toggleReimbursed(expense)}
-                          className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full transition ${
-                            expense.reimbursed
-                              ? "bg-green-50 text-green-700"
-                              : "bg-orange-50 text-orange-600 hover:bg-orange-100"
-                          }`}
-                        >
-                          {expense.reimbursed
-                            ? <><CheckCircle2 size={11} /> İade Edildi</>
-                            : <><RotateCcw size={11} /> İade Bekliyor</>}
-                        </button>
+                        <div className="space-y-1.5">
+                          {expense.reimbursed ? (
+                            <button
+                              onClick={() => toggleReimbursed(expense)}
+                              className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-green-50 text-green-700"
+                            >
+                              <CheckCircle2 size={11} /> İade Edildi
+                            </button>
+                          ) : (
+                            <>
+                              <div className="text-xs text-orange-600 font-medium">
+                                {Number(expense.reimbursed_amount) > 0
+                                  ? `Kalan: ₺${(Number(expense.amount) - Number(expense.reimbursed_amount)).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`
+                                  : "İade Bekliyor"}
+                              </div>
+                              {partialPay?.id === expense.id ? (
+                                <div className="flex items-center gap-1.5">
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    autoFocus
+                                    value={partialPay.input}
+                                    onChange={(e) => setPartialPay({ id: expense.id, input: e.target.value })}
+                                    onKeyDown={(e) => e.key === "Enter" && handlePartialPay(expense)}
+                                    placeholder="Tutar"
+                                    className="border border-gray-300 rounded px-2 py-1 text-xs w-24 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  />
+                                  <button
+                                    onClick={() => handlePartialPay(expense)}
+                                    className="text-xs bg-gray-900 text-white px-2.5 py-1 rounded hover:bg-gray-800 transition"
+                                  >
+                                    Öde
+                                  </button>
+                                  <button
+                                    onClick={() => setPartialPay(null)}
+                                    className="text-xs text-gray-400 hover:text-gray-600"
+                                  >
+                                    ✕
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => setPartialPay({ id: expense.id, input: "" })}
+                                  className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 transition"
+                                >
+                                  <RotateCcw size={10} /> Kasadan Öde
+                                </button>
+                              )}
+                            </>
+                          )}
+                        </div>
                       ) : (
                         <span className="text-gray-300 text-xs">—</span>
                       )}

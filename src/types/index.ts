@@ -68,8 +68,9 @@ export interface CompanyExpense {
   description: string;
   category: string | null;
   expense_date: string;
-  paid_by: "kasa" | "ortak1" | "ortak2";
+  paid_by: string;
   reimbursed: boolean;
+  reimbursed_amount: number;
   reimbursed_at: string | null;
   notes: string | null;
   created_at: string;
