@@ -22,6 +22,7 @@ interface MonthData {
   totalFeesCash: number;
   totalFeesBank: number;
   totalExpenses: number;
+  totalDistributed: number;
   unpaidSites: { name: string; monthly_fee: number }[];
   pendingReimbursements: { description: string; amount: number; paid_by: string }[];
 }
@@ -55,6 +56,7 @@ export default function KasaDashboard() {
       { data: expenses },
       { data: partnerData },
       { data: settlementData },
+      { data: distributionData },
     ] = await Promise.all([
       supabase.from("receipts").select("total_islenen, total_odenen").gte("date", startDate).lte("date", endDate),
       supabase.from("monthly_payments").select("amount, site_id, payment_method").eq("year", year).eq("month", month).not("paid_at", "is", null),
@@ -62,6 +64,7 @@ export default function KasaDashboard() {
       supabase.from("company_expenses").select("amount, description, paid_by, reimbursed").gte("expense_date", startDate).lte("expense_date", endDate),
       supabase.from("partners").select("*").eq("is_active", true).order("created_at"),
       supabase.from("kasa_settlements").select("*").eq("year", year).eq("month", month).maybeSingle(),
+      supabase.from("kasa_distributions").select("partner_amounts").gte("distribution_date", startDate).lte("distribution_date", endDate),
     ]);
 
     setPartners((partnerData ?? []) as Partner[]);
@@ -73,6 +76,9 @@ export default function KasaDashboard() {
     const totalFeesCash = (payments ?? []).filter((p) => p.payment_method === "nakit").reduce((sum, p) => sum + Number(p.amount), 0);
     const totalFeesBank = (payments ?? []).filter((p) => p.payment_method === "havale").reduce((sum, p) => sum + Number(p.amount), 0);
     const totalExpenses = (expenses ?? []).reduce((sum, e) => sum + Number(e.amount), 0);
+    const totalDistributed = (distributionData ?? []).reduce((sum, d) => {
+      return sum + Object.values(d.partner_amounts as Record<string, number>).reduce((s, v) => s + Number(v), 0);
+    }, 0);
 
     const paidSiteIds = new Set((payments ?? []).map((p) => p.site_id));
     const unpaidSites = (sites ?? [])
@@ -83,7 +89,7 @@ export default function KasaDashboard() {
       .filter((e) => e.paid_by !== "kasa" && !e.reimbursed)
       .map((e) => ({ description: e.description, amount: Number(e.amount), paid_by: e.paid_by }));
 
-    setData({ totalKar, totalFeesCash, totalFeesBank, totalExpenses, unpaidSites, pendingReimbursements });
+    setData({ totalKar, totalFeesCash, totalFeesBank, totalExpenses, totalDistributed, unpaidSites, pendingReimbursements });
     setLoading(false);
   }, [year, month, supabase, getDateRange]);
 
@@ -127,7 +133,7 @@ export default function KasaDashboard() {
     fetchData();
   }
 
-  const net = data ? data.totalKar + data.totalFeesCash - data.totalExpenses : 0;
+  const net = data ? data.totalKar + data.totalFeesCash - data.totalExpenses - data.totalDistributed : 0;
   const totalPct = partners.reduce((s, p) => s + Number(p.share_percentage), 0);
 
   // Per-partner owed reimbursements
@@ -244,8 +250,14 @@ export default function KasaDashboard() {
                 <span className="text-gray-600">− Şirket Giderleri</span>
                 <span className="font-semibold text-red-600">₺{data.totalExpenses.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}</span>
               </div>
+              {data.totalDistributed > 0 && (
+                <div className="flex justify-between py-3">
+                  <span className="text-gray-600">− Dağıtımlar (bu ay ödenen)</span>
+                  <span className="font-semibold text-orange-600">₺{data.totalDistributed.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}</span>
+                </div>
+              )}
               <div className="flex justify-between py-4 font-bold text-base">
-                <span className="text-gray-800">= Net Kasa (Dağıtılacak)</span>
+                <span className="text-gray-800">= Kasada Kalan</span>
                 <span className={net >= 0 ? "text-gray-900" : "text-red-600"}>
                   ₺{net.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
                 </span>
