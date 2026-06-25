@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
-import type { Site, MonthlyPayment } from "@/types";
+import type { Site, MonthlyPayment, SiteFeePeriod } from "@/types";
 import { CheckCircle2, XCircle, X, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
@@ -33,12 +33,42 @@ function fmtDate(dateStr: string): string {
   return dateStr.slice(0, 7).split("-").reverse().join(".");
 }
 
+function getApplicableFee(
+  siteId: string,
+  year: number,
+  month: number,
+  feePeriods: SiteFeePeriod[],
+  defaultFee: number
+): number {
+  const target = `${year}-${String(month).padStart(2, "0")}-01`;
+  const relevant = feePeriods
+    .filter((p) => p.site_id === siteId && p.effective_from <= target)
+    .sort((a, b) => b.effective_from.localeCompare(a.effective_from));
+  return relevant.length > 0 ? Number(relevant[0].monthly_fee) : defaultFee;
+}
+
+function getExpectedTotal(site: Site, feePeriods: SiteFeePeriod[]): number {
+  if (!site.contract_start_date || !site.contract_end_date) return 0;
+  const start = new Date(site.contract_start_date);
+  const end = new Date(site.contract_end_date);
+  let total = 0;
+  const cur = new Date(start.getFullYear(), start.getMonth(), 1);
+  const endM = new Date(end.getFullYear(), end.getMonth(), 1);
+  while (cur <= endM) {
+    total += getApplicableFee(site.id, cur.getFullYear(), cur.getMonth() + 1, feePeriods, Number(site.monthly_fee));
+    cur.setMonth(cur.getMonth() + 1);
+  }
+  return total;
+}
+
 export default function MonthlyFeeList({
   sites,
   allPaidPayments,
+  feePeriods,
 }: {
   sites: Site[];
   allPaidPayments: { site_id: string; amount: number }[];
+  feePeriods: SiteFeePeriod[];
 }) {
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
@@ -75,10 +105,11 @@ export default function MonthlyFeeList({
   }, [allPaidPayments]);
 
   function openPayForm(site: Site) {
+    const fee = getApplicableFee(site.id, year, month, feePeriods, Number(site.monthly_fee));
     setPayForm({
       siteId: site.id,
       siteName: site.name,
-      amount: String(site.monthly_fee),
+      amount: String(fee),
       paidAt: format(new Date(), "yyyy-MM-dd"),
       method: "nakit",
       notes: "",
@@ -118,7 +149,10 @@ export default function MonthlyFeeList({
   }
 
   const activeSites = sites.filter((s) => s.is_active);
-  const totalExpected = activeSites.reduce((sum, s) => sum + Number(s.monthly_fee), 0);
+  const totalExpected = activeSites.reduce(
+    (sum, s) => sum + getApplicableFee(s.id, year, month, feePeriods, Number(s.monthly_fee)),
+    0
+  );
   const totalCollected = Object.values(payments)
     .filter((p) => p.paid_at)
     .reduce((sum, p) => sum + Number(p.amount), 0);
@@ -218,7 +252,7 @@ export default function MonthlyFeeList({
                     <tr key={site.id} className="hover:bg-gray-50 transition">
                       <td className="px-6 py-4 font-medium text-gray-800">{site.name}</td>
                       <td className="px-6 py-4 text-right font-semibold text-gray-700">
-                        ₺{Number(site.monthly_fee).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                        ₺{getApplicableFee(site.id, year, month, feePeriods, Number(site.monthly_fee)).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
                       </td>
                       <td className="px-6 py-4">
                         {isPaid ? (
@@ -285,7 +319,7 @@ export default function MonthlyFeeList({
             sitesWithContracts.map((site) => {
               const stats = contractStats[site.id] ?? { paidMonths: 0, paidAmount: 0 };
               const totalMonths = monthsBetween(site.contract_start_date!, site.contract_end_date!);
-              const totalAmount = Number(site.monthly_fee) * totalMonths;
+              const totalAmount = getExpectedTotal(site, feePeriods);
               const remainingMonths = Math.max(0, totalMonths - stats.paidMonths);
               const remainingAmount = Math.max(0, totalAmount - stats.paidAmount);
               const progress = totalMonths > 0 ? Math.min(100, (stats.paidMonths / totalMonths) * 100) : 0;
@@ -301,10 +335,15 @@ export default function MonthlyFeeList({
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs text-gray-400">Aylık</p>
+                      <p className="text-xs text-gray-400">Güncel Aylık</p>
                       <p className="font-semibold text-gray-800">
                         ₺{Number(site.monthly_fee).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
                       </p>
+                      {feePeriods.some((p) => p.site_id === site.id) && (
+                        <p className="text-xs text-blue-500 mt-0.5">
+                          {feePeriods.filter((p) => p.site_id === site.id).length} dönem
+                        </p>
+                      )}
                     </div>
                   </div>
 

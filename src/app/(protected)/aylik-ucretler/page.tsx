@@ -4,12 +4,16 @@ import MonthlyFeeList from "@/components/aylik-ucretler/MonthlyFeeList";
 export default async function AylikUcretlerPage() {
   const supabase = await createClient();
 
-  const [{ data: sites }, { data: allPaidPayments }] = await Promise.all([
+  const [{ data: sites }, { data: allPaidPayments }, { data: feePeriods }] = await Promise.all([
     supabase.from("sites").select("*").order("name"),
     supabase
       .from("monthly_payments")
       .select("site_id, amount")
       .not("paid_at", "is", null),
+    supabase
+      .from("site_fee_periods")
+      .select("*")
+      .order("effective_from"),
   ]);
 
   return (
@@ -20,7 +24,11 @@ export default async function AylikUcretlerPage() {
           Aylık ödeme takibi ve sözleşme durumu
         </p>
       </div>
-      <MonthlyFeeList sites={sites ?? []} allPaidPayments={allPaidPayments ?? []} />
+      <MonthlyFeeList
+        sites={sites ?? []}
+        allPaidPayments={allPaidPayments ?? []}
+        feePeriods={feePeriods ?? []}
+      />
     </div>
   );
 }

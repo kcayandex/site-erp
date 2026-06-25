@@ -31,6 +31,15 @@ export interface Partner {
   created_at: string;
 }
 
+export interface SiteFeePeriod {
+  id: string;
+  site_id: string;
+  effective_from: string;
+  monthly_fee: number;
+  note: string | null;
+  created_at: string;
+}
+
 export interface MonthlyPayment {
   id: string;
   site_id: string;
