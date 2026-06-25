@@ -1,0 +1,241 @@
+{
+  "version": 1,
+  "updatedAt": 1782387662812,
+  "nodeCount": 19,
+  "nodes": {
+    "mem-MEMORY-feedback": {
+      "id": "mem-MEMORY-feedback",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1781176215518
+    },
+    "mem-MEMORY-project": {
+      "id": "mem-MEMORY-project",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1781176215518
+    },
+    "mem-feedback_i18n_always_use_t----": {
+      "id": "mem-feedback_i18n_always_use_t----",
+      "category": "feedback_i18n_always_use_t",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1781176215518
+    },
+    "mem-project_property_management----": {
+      "id": "mem-project_property_management----",
+      "category": "project_property_management",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1781176215518
+    },
+    "mem-project_property_management-completed--mar-18-2026-session": {
+      "id": "mem-project_property_management-completed--mar-18-2026-session",
+      "category": "project_property_management",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1781176215518
+    },
+    "mem-project_ux_open_questions----": {
+      "id": "mem-project_ux_open_questions----",
+      "category": "project_ux_open_questions",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1781176215519
+    },
+    "mem-MEMORY-stack": {
+      "id": "mem-MEMORY-stack",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1781176215519
+    },
+    "mem-MEMORY-project-structure": {
+      "id": "mem-MEMORY-project-structure",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1781176215519
+    },
+    "mem-MEMORY-key-patterns": {
+      "id": "mem-MEMORY-key-patterns",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1781176215519
+    },
+    "mem-MEMORY-known-issue--stale-cache": {
+      "id": "mem-MEMORY-known-issue--stale-cache",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1781176215519
+    },
+    "mem-MEMORY-auth---middleware": {
+      "id": "mem-MEMORY-auth---middleware",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1781176215519
+    },
+    "mem-MEMORY-database-schema--key-columns-": {
+      "id": "mem-MEMORY-database-schema--key-columns-",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1781176215519
+    },
+    "mem-MEMORY-superadmin-features": {
+      "id": "mem-MEMORY-superadmin-features",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1781176215519
+    },
+    "mem-MEMORY-turkish-tenancy-law-warnings": {
+      "id": "mem-MEMORY-turkish-tenancy-law-warnings",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1781176215519
+    },
+    "mem-MEMORY-i18n": {
+      "id": "mem-MEMORY-i18n",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1781176215519
+    },
+    "mem-MEMORY-security-patterns--enforced-af": {
+      "id": "mem-MEMORY-security-patterns--enforced-af",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1781176215519
+    },
+    "mem-MEMORY-all-features-completed": {
+      "id": "mem-MEMORY-all-features-completed",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1781176215519
+    },
+    "mem-MEMORY-pending-plan": {
+      "id": "mem-MEMORY-pending-plan",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1781176215519
+    },
+    "insight-1781524245514-ch6q": {
+      "id": "insight-1781524245514-ch6q",
+      "category": "insights",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1781524245514
+    }
+  },
+  "edges": [
+    {
+      "sourceId": "mem-MEMORY-feedback",
+      "targetId": "mem-MEMORY-project",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_property_management----",
+      "targetId": "mem-project_property_management-completed--mar-18-2026-session",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-MEMORY-stack",
+      "targetId": "mem-MEMORY-project-structure",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-MEMORY-project-structure",
+      "targetId": "mem-MEMORY-key-patterns",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-MEMORY-key-patterns",
+      "targetId": "mem-MEMORY-known-issue--stale-cache",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-MEMORY-known-issue--stale-cache",
+      "targetId": "mem-MEMORY-auth---middleware",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-MEMORY-auth---middleware",
+      "targetId": "mem-MEMORY-database-schema--key-columns-",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-MEMORY-database-schema--key-columns-",
+      "targetId": "mem-MEMORY-superadmin-features",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-MEMORY-superadmin-features",
+      "targetId": "mem-MEMORY-turkish-tenancy-law-warnings",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-MEMORY-turkish-tenancy-law-warnings",
+      "targetId": "mem-MEMORY-i18n",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-MEMORY-i18n",
+      "targetId": "mem-MEMORY-security-patterns--enforced-af",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-MEMORY-security-patterns--enforced-af",
+      "targetId": "mem-MEMORY-all-features-completed",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-MEMORY-all-features-completed",
+      "targetId": "mem-MEMORY-pending-plan",
+      "type": "temporal",
+      "weight": 0.5
+    }
+  ],
+  "pageRanks": {
+    "mem-MEMORY-feedback": 0.01776309212683698,
+    "mem-MEMORY-project": 0.03286155345599109,
+    "mem-feedback_i18n_always_use_t----": 0.01776309212683698,
+    "mem-project_property_management----": 0.01776309212683698,
+    "mem-project_property_management-completed--mar-18-2026-session": 0.03286155345599109,
+    "mem-project_ux_open_questions----": 0.01776309212683698,
+    "mem-MEMORY-stack": 0.01776309212683698,
+    "mem-MEMORY-project-structure": 0.03286155345599109,
+    "mem-MEMORY-key-patterns": 0.04569512548893749,
+    "mem-MEMORY-known-issue--stale-cache": 0.05660365841804505,
+    "mem-MEMORY-auth---middleware": 0.06587613737314711,
+    "mem-MEMORY-database-schema--key-columns-": 0.07375818239736812,
+    "mem-MEMORY-superadmin-features": 0.08045871128757796,
+    "mem-MEMORY-turkish-tenancy-law-warnings": 0.08615444177563816,
+    "mem-MEMORY-i18n": 0.09099566199523712,
+    "mem-MEMORY-security-patterns--enforced-af": 0.095110193715881,
+    "mem-MEMORY-all-features-completed": 0.09860676811041948,
+    "mem-MEMORY-pending-plan": 0.10157790630875321,
+    "insight-1781524245514-ch6q": 0.01776309212683698
+  }
+}

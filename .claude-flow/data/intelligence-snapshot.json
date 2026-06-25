@@ -1,0 +1,362 @@
+[
+  {
+    "timestamp": 1781524245518,
+    "nodes": 19,
+    "edges": 13,
+    "pageRankSum": 0.9999999999999999,
+    "confidences": [
+      0.48,
+      0.48,
+      0.48,
+      0.48,
+      0.48,
+      0.48,
+      0.48,
+      0.48,
+      0.48,
+      0.48,
+      0.48,
+      0.48,
+      0.48,
+      0.48,
+      0.48,
+      0.48,
+      0.48,
+      0.48,
+      0.5
+    ],
+    "accessCounts": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "topPatterns": [
+      {
+        "id": "mem-MEMORY-pending-plan",
+        "summary": "Pending Plan",
+        "confidence": 0.48,
+        "pageRank": 0.10157790630875321,
+        "accessCount": 0
+      },
+      {
+        "id": "mem-MEMORY-all-features-completed",
+        "summary": "All Features Completed",
+        "confidence": 0.48,
+        "pageRank": 0.09860676811041948,
+        "accessCount": 0
+      },
+      {
+        "id": "mem-MEMORY-security-patterns--enforced-af",
+        "summary": "Security Patterns (enforced after audit 2026-02)",
+        "confidence": 0.48,
+        "pageRank": 0.095110193715881,
+        "accessCount": 0
+      },
+      {
+        "id": "mem-MEMORY-i18n",
+        "summary": "i18n",
+        "confidence": 0.48,
+        "pageRank": 0.09099566199523712,
+        "accessCount": 0
+      },
+      {
+        "id": "mem-MEMORY-turkish-tenancy-law-warnings",
+        "summary": "Turkish Tenancy Law Warnings",
+        "confidence": 0.48,
+        "pageRank": 0.08615444177563816,
+        "accessCount": 0
+      },
+      {
+        "id": "mem-MEMORY-superadmin-features",
+        "summary": "Superadmin Features",
+        "confidence": 0.48,
+        "pageRank": 0.08045871128757796,
+        "accessCount": 0
+      },
+      {
+        "id": "mem-MEMORY-database-schema--key-columns-",
+        "summary": "Database Schema (key columns)",
+        "confidence": 0.48,
+        "pageRank": 0.07375818239736812,
+        "accessCount": 0
+      },
+      {
+        "id": "mem-MEMORY-auth---middleware",
+        "summary": "Auth & Middleware",
+        "confidence": 0.48,
+        "pageRank": 0.06587613737314711,
+        "accessCount": 0
+      },
+      {
+        "id": "mem-MEMORY-known-issue--stale-cache",
+        "summary": "Known Issue: Stale Cache",
+        "confidence": 0.48,
+        "pageRank": 0.05660365841804505,
+        "accessCount": 0
+      },
+      {
+        "id": "mem-MEMORY-key-patterns",
+        "summary": "Key Patterns",
+        "confidence": 0.48,
+        "pageRank": 0.04569512548893749,
+        "accessCount": 0
+      }
+    ]
+  },
+  {
+    "timestamp": 1782380531178,
+    "nodes": 19,
+    "edges": 13,
+    "pageRankSum": 0.9999999999999999,
+    "confidences": [
+      0.415,
+      0.415,
+      0.415,
+      0.415,
+      0.415,
+      0.415,
+      0.415,
+      0.415,
+      0.415,
+      0.415,
+      0.415,
+      0.415,
+      0.415,
+      0.415,
+      0.415,
+      0.415,
+      0.415,
+      0.415,
+      0.455
+    ],
+    "accessCounts": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "topPatterns": [
+      {
+        "id": "mem-MEMORY-pending-plan",
+        "summary": "Pending Plan",
+        "confidence": 0.415,
+        "pageRank": 0.10157790630875321,
+        "accessCount": 0
+      },
+      {
+        "id": "mem-MEMORY-all-features-completed",
+        "summary": "All Features Completed",
+        "confidence": 0.415,
+        "pageRank": 0.09860676811041948,
+        "accessCount": 0
+      },
+      {
+        "id": "mem-MEMORY-security-patterns--enforced-af",
+        "summary": "Security Patterns (enforced after audit 2026-02)",
+        "confidence": 0.415,
+        "pageRank": 0.095110193715881,
+        "accessCount": 0
+      },
+      {
+        "id": "mem-MEMORY-i18n",
+        "summary": "i18n",
+        "confidence": 0.415,
+        "pageRank": 0.09099566199523712,
+        "accessCount": 0
+      },
+      {
+        "id": "mem-MEMORY-turkish-tenancy-law-warnings",
+        "summary": "Turkish Tenancy Law Warnings",
+        "confidence": 0.415,
+        "pageRank": 0.08615444177563816,
+        "accessCount": 0
+      },
+      {
+        "id": "mem-MEMORY-superadmin-features",
+        "summary": "Superadmin Features",
+        "confidence": 0.415,
+        "pageRank": 0.08045871128757796,
+        "accessCount": 0
+      },
+      {
+        "id": "mem-MEMORY-database-schema--key-columns-",
+        "summary": "Database Schema (key columns)",
+        "confidence": 0.415,
+        "pageRank": 0.07375818239736812,
+        "accessCount": 0
+      },
+      {
+        "id": "mem-MEMORY-auth---middleware",
+        "summary": "Auth & Middleware",
+        "confidence": 0.415,
+        "pageRank": 0.06587613737314711,
+        "accessCount": 0
+      },
+      {
+        "id": "mem-MEMORY-known-issue--stale-cache",
+        "summary": "Known Issue: Stale Cache",
+        "confidence": 0.415,
+        "pageRank": 0.05660365841804505,
+        "accessCount": 0
+      },
+      {
+        "id": "mem-MEMORY-key-patterns",
+        "summary": "Key Patterns",
+        "confidence": 0.415,
+        "pageRank": 0.04569512548893749,
+        "accessCount": 0
+      }
+    ]
+  },
+  {
+    "timestamp": 1782387540143,
+    "nodes": 19,
+    "edges": 13,
+    "pageRankSum": 0.9999999999999999,
+    "confidences": [
+      0.43,
+      0.43,
+      0.43,
+      0.43,
+      0.43,
+      0.43,
+      0.43,
+      0.43,
+      0.43,
+      0.43,
+      0.43,
+      0.43,
+      0.43,
+      0.43,
+      0.43,
+      0.43,
+      0.43,
+      0.43,
+      0.455
+    ],
+    "accessCounts": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "topPatterns": [
+      {
+        "id": "mem-MEMORY-pending-plan",
+        "summary": "Pending Plan",
+        "confidence": 0.43,
+        "pageRank": 0.10157790630875321,
+        "accessCount": 0
+      },
+      {
+        "id": "mem-MEMORY-all-features-completed",
+        "summary": "All Features Completed",
+        "confidence": 0.43,
+        "pageRank": 0.09860676811041948,
+        "accessCount": 0
+      },
+      {
+        "id": "mem-MEMORY-security-patterns--enforced-af",
+        "summary": "Security Patterns (enforced after audit 2026-02)",
+        "confidence": 0.43,
+        "pageRank": 0.095110193715881,
+        "accessCount": 0
+      },
+      {
+        "id": "mem-MEMORY-i18n",
+        "summary": "i18n",
+        "confidence": 0.43,
+        "pageRank": 0.09099566199523712,
+        "accessCount": 0
+      },
+      {
+        "id": "mem-MEMORY-turkish-tenancy-law-warnings",
+        "summary": "Turkish Tenancy Law Warnings",
+        "confidence": 0.43,
+        "pageRank": 0.08615444177563816,
+        "accessCount": 0
+      },
+      {
+        "id": "mem-MEMORY-superadmin-features",
+        "summary": "Superadmin Features",
+        "confidence": 0.43,
+        "pageRank": 0.08045871128757796,
+        "accessCount": 0
+      },
+      {
+        "id": "mem-MEMORY-database-schema--key-columns-",
+        "summary": "Database Schema (key columns)",
+        "confidence": 0.43,
+        "pageRank": 0.07375818239736812,
+        "accessCount": 0
+      },
+      {
+        "id": "mem-MEMORY-auth---middleware",
+        "summary": "Auth & Middleware",
+        "confidence": 0.43,
+        "pageRank": 0.06587613737314711,
+        "accessCount": 0
+      },
+      {
+        "id": "mem-MEMORY-known-issue--stale-cache",
+        "summary": "Known Issue: Stale Cache",
+        "confidence": 0.43,
+        "pageRank": 0.05660365841804505,
+        "accessCount": 0
+      },
+      {
+        "id": "mem-MEMORY-key-patterns",
+        "summary": "Key Patterns",
+        "confidence": 0.43,
+        "pageRank": 0.04569512548893749,
+        "accessCount": 0
+      }
+    ]
+  }
+]

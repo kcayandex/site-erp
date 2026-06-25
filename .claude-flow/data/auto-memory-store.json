@@ -1,0 +1,250 @@
+[
+  {
+    "id": "mem-MEMORY-feedback",
+    "key": "feedback",
+    "content": "- [i18n — always use t() for UI strings](feedback_i18n_always_use_t.md): Never hardcode UI strings; always add to i18n.ts and use t() from the start, in the same commit as the feature.",
+    "summary": "Feedback",
+    "namespace": "core",
+    "type": "semantic",
+    "metadata": {
+      "sourceFile": "/Users/kemalaydogan/.claude/projects/-Users-kemalaydogan-ClaudeAgent/memory/MEMORY.md",
+      "bootstrapped": true
+    },
+    "createdAt": 1781176215518
+  },
+  {
+    "id": "mem-MEMORY-project",
+    "key": "project",
+    "content": "- [endaRenta property management app](project_property_management.md): Turkish SaaS at ~/property-management — Next.js 16, Supabase, Vercel. Industry standards (security headers, rate limiting, audit log, GDPR) implemented Mar 18 2026.\n- [UX open questions — genel akış](project_ux_open_questions.md): Kullanıcı UI'ın kullanıcı dostu olmadığını söyledi, genel akış eksik. Yanıtsız 3 soru var — bir sonraki oturumda ele alınacak.",
+    "summary": "Project",
+    "namespace": "core",
+    "type": "semantic",
+    "metadata": {
+      "sourceFile": "/Users/kemalaydogan/.claude/projects/-Users-kemalaydogan-ClaudeAgent/memory/MEMORY.md",
+      "bootstrapped": true
+    },
+    "createdAt": 1781176215518
+  },
+  {
+    "id": "mem-feedback_i18n_always_use_t----",
+    "key": "-",
+    "content": "name: i18n — always use t() for UI strings\ndescription: Never hardcode UI strings in TSX/TS files; always add to i18n.ts and use t() from the start\ntype: feedback\n---\n\nAlways use the i18n system (`t()` via `useT()`) for every visible UI string in this project. Never hardcode strings directly in JSX or component logic.\n\n**Why:** The project has full EN/TR localization. Hardcoded strings bypass this and accumulate as debt that requires periodic audits to clean up.\n\n**How to apply:**\n- When writing",
+    "summary": "---",
+    "namespace": "feedback_i18n_always_use_t",
+    "type": "semantic",
+    "metadata": {
+      "sourceFile": "/Users/kemalaydogan/.claude/projects/-Users-kemalaydogan-ClaudeAgent/memory/feedback_i18n_always_use_t.md",
+      "bootstrapped": true
+    },
+    "createdAt": 1781176215518
+  },
+  {
+    "id": "mem-project_property_management----",
+    "key": "-",
+    "content": "name: property-management project context\ndescription: endaRenta property management app at ~/property-management — stack, current state, and completed work\ntype: project\n---\n\nTurkish property management SaaS app called **endaRenta** at `/Users/kemalaydogan/property-management`.\n\n**Stack:** Next.js 16, Supabase, Tailwind, Radix UI, Resend (email), TypeScript, Vercel deployment.\n\n**Why:** Paid app targeting Turkish landlords. Bilingual EN/TR via cookie-based i18n (`prop_locale`).\n\n**How to apply:",
+    "summary": "---",
+    "namespace": "project_property_management",
+    "type": "semantic",
+    "metadata": {
+      "sourceFile": "/Users/kemalaydogan/.claude/projects/-Users-kemalaydogan-ClaudeAgent/memory/project_property_management.md",
+      "bootstrapped": true
+    },
+    "createdAt": 1781176215518
+  },
+  {
+    "id": "mem-project_property_management-completed--mar-18-2026-session",
+    "key": "completed-mar-18-2026-session-",
+    "content": "### Security & compliance standards implemented:\n- Security headers (CSP, HSTS, X-Frame-Options, etc.) in `next.config.js`\n- Server-side login rate limiting — `login_attempts` Supabase table + `src/lib/rate-limit.ts` + `src/app/login/actions.ts` (replaces client-side localStorage lockout)\n- Zod validation on login action + deleteAccount action\n- Input sanitization utility at `src/lib/sanitize.ts`\n- Session inactivity timeout (2hr) via middleware cookie\n- Email on account deletion (`sendAccountDe",
+    "summary": "Completed (Mar 18 2026 session)",
+    "namespace": "project_property_management",
+    "type": "semantic",
+    "metadata": {
+      "sourceFile": "/Users/kemalaydogan/.claude/projects/-Users-kemalaydogan-ClaudeAgent/memory/project_property_management.md",
+      "bootstrapped": true
+    },
+    "createdAt": 1781176215518
+  },
+  {
+    "id": "mem-project_ux_open_questions----",
+    "key": "-",
+    "content": "name: UX open questions — genel akış\ndescription: Kullanıcının UI/UX hakkında cevaplamak istediği ama henüz cevaplanmamış sorular\ntype: project\n---\n\nKullanıcı genel akışın kullanıcı dostu olmadığını söyledi. Aşağıdaki sorular hâlâ yanıtsız — bir sonraki oturumda ele alınacak.\n\n1. Uygulamayı açınca ilk ne yapmak istiyorsun? (bugün kim ödedi/ödemedi, yeni ödeme girmek, kiracıya mesaj atmak?)\n2. Günde kaç dakika harcıyorsun? En çok zaman nerede gidiyor?\n3. Tipik bir günün/ayın akışı nasıl? Hangi ad",
+    "summary": "---",
+    "namespace": "project_ux_open_questions",
+    "type": "semantic",
+    "metadata": {
+      "sourceFile": "/Users/kemalaydogan/.claude/projects/-Users-kemalaydogan-ClaudeAgent/memory/project_ux_open_questions.md",
+      "bootstrapped": true
+    },
+    "createdAt": 1781176215519
+  },
+  {
+    "id": "mem-MEMORY-stack",
+    "key": "stack",
+    "content": "- Next.js 14 App Router + TypeScript\n- Tailwind CSS + Shadcn/ui (custom, not CLI-generated)\n- Supabase (PostgreSQL, RLS enabled, anon key in .env.local)\n- @tanstack/react-table v8 for DataTable\n- Lucide React icons",
+    "summary": "Stack",
+    "namespace": "core",
+    "type": "semantic",
+    "metadata": {
+      "sourceFile": "/Users/kemalaydogan/.claude/projects/-Users-kemalaydogan-property-management/memory/MEMORY.md",
+      "bootstrapped": true
+    },
+    "createdAt": 1781176215519
+  },
+  {
+    "id": "mem-MEMORY-project-structure",
+    "key": "project-structure",
+    "content": "```\nsrc/\n  app/\n    layout.tsx, page.tsx (redirect → /dashboard)\n    (app)/layout.tsx     — maintenance redirect, AnnouncementBanner, sidebarColor\n    dashboard/page.tsx   — server component, force-dynamic\n    properties/          — page.tsx, properties-client.tsx, actions.ts\n    tenants/             — page.tsx, tenants-client.tsx, actions.ts\n    payments/            — page.tsx, payments-client.tsx, actions.ts\n    renewals/            — page.tsx, renewals-client.tsx, actions.ts\n    maintenance/ ",
+    "summary": "Project Structure",
+    "namespace": "core",
+    "type": "semantic",
+    "metadata": {
+      "sourceFile": "/Users/kemalaydogan/.claude/projects/-Users-kemalaydogan-property-management/memory/MEMORY.md",
+      "bootstrapped": true
+    },
+    "createdAt": 1781176215519
+  },
+  {
+    "id": "mem-MEMORY-key-patterns",
+    "key": "key-patterns",
+    "content": "- All data pages use `export const dynamic = \"force-dynamic\"`\n- Supabase client is lazy (initialized on first call, not module load)\n- Don't pass Database generic to createClient — use `as TypeName[]` casts instead\n- Server components fetch data → pass to `*-client.tsx` Client components\n- Server Actions in `actions.ts` files handle all mutations\n- Dynamic sidebar colors use **inline CSS styles** (not Tailwind dynamic classes) to avoid purge issues\n- Logout uses `window.location.href = \"/login\"`",
+    "summary": "Key Patterns",
+    "namespace": "core",
+    "type": "semantic",
+    "metadata": {
+      "sourceFile": "/Users/kemalaydogan/.claude/projects/-Users-kemalaydogan-property-management/memory/MEMORY.md",
+      "bootstrapped": true
+    },
+    "createdAt": 1781176215519
+  },
+  {
+    "id": "mem-MEMORY-known-issue--stale-cache",
+    "key": "known-issue-stale-cache",
+    "content": "If `Cannot find module './NNN.js'` appears after adding files:\n→ `kill $(lsof -ti :3000) && rm -rf .next && npm run dev`",
+    "summary": "Known Issue: Stale Cache",
+    "namespace": "core",
+    "type": "semantic",
+    "metadata": {
+      "sourceFile": "/Users/kemalaydogan/.claude/projects/-Users-kemalaydogan-property-management/memory/MEMORY.md",
+      "bootstrapped": true
+    },
+    "createdAt": 1781176215519
+  },
+  {
+    "id": "mem-MEMORY-auth---middleware",
+    "key": "auth-middleware",
+    "content": "- RLS is enabled on all tables (owner_id = auth.uid())\n- Auth is fully implemented (login page, middleware, session management)\n- All reads and writes are scoped to `getCurrentUserId()` (from supabase-server.ts)\n- Tables without owner_id (leases, payments, maintenance_fees) are scoped via property chain: get owner property IDs → lease IDs → filter\n- Public pages in middleware: `/login`, `/signup`, `/maintenance`",
+    "summary": "Auth & Middleware",
+    "namespace": "core",
+    "type": "semantic",
+    "metadata": {
+      "sourceFile": "/Users/kemalaydogan/.claude/projects/-Users-kemalaydogan-property-management/memory/MEMORY.md",
+      "bootstrapped": true
+    },
+    "createdAt": 1781176215519
+  },
+  {
+    "id": "mem-MEMORY-database-schema--key-columns-",
+    "key": "database-schema-key-columns-",
+    "content": "```sql\nproperties:  id, owner_id, title, address, units, status, notes\ntenants:     id, owner_id, full_name, phone_number, email, active_lease_id, notes\nleases:      id, property_id, tenant_id, start_date, end_date, monthly_rent,\n             due_day, late_fee_percentage, deposit_amount, deposit_paid,\n             notes, original_start_date\npayments:    id, lease_id, billing_month, amount_due, amount_paid, status, ...\nmaintenance_fees: id, lease_id, billing_month, amount_due, amount_paid,\n      ",
+    "summary": "Database Schema (key columns)",
+    "namespace": "core",
+    "type": "semantic",
+    "metadata": {
+      "sourceFile": "/Users/kemalaydogan/.claude/projects/-Users-kemalaydogan-property-management/memory/MEMORY.md",
+      "bootstrapped": true
+    },
+    "createdAt": 1781176215519
+  },
+  {
+    "id": "mem-MEMORY-superadmin-features",
+    "key": "superadmin-features",
+    "content": "- `/superadmin` — user management, app settings\n- `app_settings` table (single row, id=1) controls: sidebar color, registration, maintenance mode, announcement banner, support contact info, logos\n- Logo upload: Supabase Storage `logos` bucket, filename uses timestamp for CDN cache busting\n- `SIDEBAR_COLORS` map in `lib/app-settings.ts` — keys: \"slate\", \"navy\", \"forest\", \"wine\", \"charcoal\"\n- Maintenance mode: if enabled, non-superadmin users are redirected to `/maintenance`\n- Registration toggle:",
+    "summary": "Superadmin Features",
+    "namespace": "core",
+    "type": "semantic",
+    "metadata": {
+      "sourceFile": "/Users/kemalaydogan/.claude/projects/-Users-kemalaydogan-property-management/memory/MEMORY.md",
+      "bootstrapped": true
+    },
+    "createdAt": 1781176215519
+  },
+  {
+    "id": "mem-MEMORY-turkish-tenancy-law-warnings",
+    "key": "turkish-tenancy-law-warnings",
+    "content": "- `original_start_date` on leases — preserved across renewals to track true tenancy start\n  - On new lease: `original_start_date = start_date`\n  - On renewal: copy `original_start_date` from old lease (fallback to `start_date`)\n- `getTenancyYears(original_start_date, fallback_start_date)` helper used in 3 screens\n- Legal milestones:\n  - **5+ years** (amber warning): kira tespit davası — landlord can sue for rent adjustment beyond TÜFE\n  - **10+ years** (red warning): tahliye davası — landlord ca",
+    "summary": "Turkish Tenancy Law Warnings",
+    "namespace": "core",
+    "type": "semantic",
+    "metadata": {
+      "sourceFile": "/Users/kemalaydogan/.claude/projects/-Users-kemalaydogan-property-management/memory/MEMORY.md",
+      "bootstrapped": true
+    },
+    "createdAt": 1781176215519
+  },
+  {
+    "id": "mem-MEMORY-i18n",
+    "key": "i18n",
+    "content": "- All UI text goes through `t()` from `lib/i18n.ts`\n- Language stored in localStorage (`lang`), default `\"tr\"`\n- Namespace keys: `common`, `dashboard`, `properties`, `tenants`, `payments`, `renewals`, `maintenance`, `superadmin`, `auth`",
+    "summary": "i18n",
+    "namespace": "core",
+    "type": "semantic",
+    "metadata": {
+      "sourceFile": "/Users/kemalaydogan/.claude/projects/-Users-kemalaydogan-property-management/memory/MEMORY.md",
+      "bootstrapped": true
+    },
+    "createdAt": 1781176215519
+  },
+  {
+    "id": "mem-MEMORY-security-patterns--enforced-af",
+    "key": "security-patterns-enforced-after-audit-2026-02-",
+    "content": "- **Ownership checks are mandatory in every server action** — call `getCurrentUserId()` first\n- `payments/actions.ts` — uses `assertPaymentOwner()` (payment→lease→property→owner_id) + `assertLeaseOwner()` for createPaymentRecord\n- `maintenance-fees/actions.ts` — uses `assertFeeOwner()` + `assertLeaseOwner()` for create; occurrences capped at 60\n- `tenants/document-actions.ts` — uses `assertLeaseOwner()` + `assertDocumentOwner()`; file size ≤20MB; allowed MIME types only; bucket is **private** (`",
+    "summary": "Security Patterns (enforced after audit 2026-02)",
+    "namespace": "core",
+    "type": "semantic",
+    "metadata": {
+      "sourceFile": "/Users/kemalaydogan/.claude/projects/-Users-kemalaydogan-property-management/memory/MEMORY.md",
+      "bootstrapped": true
+    },
+    "createdAt": 1781176215519
+  },
+  {
+    "id": "mem-MEMORY-all-features-completed",
+    "key": "all-features-completed",
+    "content": "1. ✅ Scaffolding (Next.js structure, sidebar, header)\n2. ✅ Dashboard (stats cards, recent payments, Supabase queries + ads strip)\n3. ✅ Property & Tenant Management (DataTable CRUD + WhatsApp + notes)\n4. ✅ Payment Ledger (record payment, mark overdue, penalty/waive + tenancy duration)\n5. ✅ Renewal Logic (CPI suggestion, manual override, new lease + deposit/notes)\n6. ✅ Maintenance Fees (CRUD, payee types, recurring fee creation)\n7. ✅ Superadmin Panel (user management, app settings, logos, sidebar ",
+    "summary": "All Features Completed",
+    "namespace": "core",
+    "type": "semantic",
+    "metadata": {
+      "sourceFile": "/Users/kemalaydogan/.claude/projects/-Users-kemalaydogan-property-management/memory/MEMORY.md",
+      "bootstrapped": true
+    },
+    "createdAt": 1781176215519
+  },
+  {
+    "id": "mem-MEMORY-pending-plan",
+    "key": "pending-plan",
+    "content": "- Recurring maintenance fee (\"Repeat for N months\") — plan saved at starry-nibbling-widget.md",
+    "summary": "Pending Plan",
+    "namespace": "core",
+    "type": "semantic",
+    "metadata": {
+      "sourceFile": "/Users/kemalaydogan/.claude/projects/-Users-kemalaydogan-property-management/memory/MEMORY.md",
+      "bootstrapped": true
+    },
+    "createdAt": 1781176215519
+  },
+  {
+    "id": "insight-1781524245514-ch6q",
+    "key": "frequent-edit-unknown",
+    "content": "File unknown was edited 9 times this session — likely a hot path worth monitoring.",
+    "summary": "Frequently edited: unknown (9x)",
+    "namespace": "insights",
+    "type": "procedural",
+    "metadata": {
+      "sourceFile": "unknown",
+      "editCount": 9,
+      "autoGenerated": true
+    },
+    "createdAt": 1781524245514
+  }
+]

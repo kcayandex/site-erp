@@ -1,0 +1,14 @@
+{
+  "id": "session-1781176215509",
+  "startedAt": "2026-06-11T11:10:15.509Z",
+  "cwd": "/Users/kemalaydogan/ClaudeAgent/site-erp",
+  "context": {},
+  "metrics": {
+    "edits": 6,
+    "commands": 0,
+    "tasks": 0,
+    "errors": 0
+  },
+  "endedAt": "2026-06-15T11:50:45.523Z",
+  "duration": 348030019
+}
