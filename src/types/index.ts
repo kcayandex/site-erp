@@ -107,7 +107,7 @@ export interface ProfitReport {
   site_id: string;
   site_name: string;
   total_islenen: number;
-  total_odened: number;
+  total_odenen: number;
   profit: number;
   receipt_count: number;
 }

@@ -55,7 +55,7 @@ export default function KasaDashboard() {
       { data: partnerData },
       { data: settlementData },
     ] = await Promise.all([
-      supabase.from("receipts").select("total_islenen, total_odened").gte("date", startDate).lte("date", endDate),
+      supabase.from("receipts").select("total_islenen, total_odenen").gte("date", startDate).lte("date", endDate),
       supabase.from("monthly_payments").select("amount, site_id, payment_method").eq("year", year).eq("month", month).not("paid_at", "is", null),
       supabase.from("sites").select("id, name, monthly_fee").eq("is_active", true),
       supabase.from("company_expenses").select("amount, description, paid_by, reimbursed").gte("expense_date", startDate).lte("expense_date", endDate),
@@ -67,7 +67,7 @@ export default function KasaDashboard() {
     setSettlement(settlementData as KasaSettlement | null);
 
     const totalKar = (receipts ?? []).reduce(
-      (sum, r) => sum + (Number(r.total_islenen) - Number(r.total_odened)), 0
+      (sum, r) => sum + (Number(r.total_islenen) - Number(r.total_odenen)), 0
     );
     const totalFeesCash = (payments ?? []).filter((p) => p.payment_method === "nakit").reduce((sum, p) => sum + Number(p.amount), 0);
     const totalFeesBank = (payments ?? []).filter((p) => p.payment_method === "havale").reduce((sum, p) => sum + Number(p.amount), 0);
