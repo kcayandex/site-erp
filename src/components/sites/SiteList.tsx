@@ -197,13 +197,19 @@ export default function SiteList({
   async function handleAddPeriod() {
     if (!editingSite || !periodForm.effective_from || !periodForm.monthly_fee) return;
     setPeriodSaving(true);
-    await supabase.from("site_fee_periods").insert({
+    const { error: insertErr } = await supabase.from("site_fee_periods").insert({
       site_id: editingSite.id,
       effective_from: periodForm.effective_from,
       monthly_fee: parseFloat(periodForm.monthly_fee),
       note: periodForm.note || null,
     });
     setPeriodSaving(false);
+    if (insertErr) {
+      alert(insertErr.message.includes("unique")
+        ? "Bu tarih için zaten bir dönem var."
+        : "Eklenemedi: " + insertErr.message);
+      return;
+    }
     setPeriodForm(EMPTY_PERIOD);
     setShowAddPeriod(false);
     loadFeePeriods(editingSite.id);
