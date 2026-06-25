@@ -12,6 +12,7 @@ import {
   CalendarCheck,
   Receipt,
   Vault,
+  Users,
 } from "lucide-react";
 
 const navItems = [
@@ -26,6 +27,7 @@ const navItems = [
 
 const adminItems = [
   { href: "/admin/rapor", label: "Rapor", icon: BarChart3 },
+  { href: "/ortaklar", label: "Ortaklar", icon: Users },
 ];
 
 export default function Sidebar({ isAdmin }: { isAdmin: boolean }) {

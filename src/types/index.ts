@@ -17,6 +17,16 @@ export interface Site {
   abbreviation: string;
   vergi_no: string | null;
   monthly_fee: number;
+  contract_start_date: string | null;
+  contract_end_date: string | null;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface Partner {
+  id: string;
+  name: string;
+  share_percentage: number;
   is_active: boolean;
   created_at: string;
 }

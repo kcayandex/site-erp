@@ -3,43 +3,48 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
-import type { CompanyExpense } from "@/types";
+import type { CompanyExpense, Partner } from "@/types";
 import { Plus, Trash2, RotateCcw, CheckCircle2 } from "lucide-react";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 
 const CATEGORIES = ["Ofis", "Ulaşım", "Yazılım", "Yemek", "Kira", "Diğer"];
-const PAID_BY_LABELS: Record<string, string> = {
-  kasa: "Kasa",
-  ortak1: "Ortak 1",
-  ortak2: "Ortak 2",
-};
+
+function getPaidByLabel(paidBy: string, partners: Partner[]): string {
+  if (paidBy === "kasa") return "Kasa";
+  const partner = partners.find((p) => p.id === paidBy);
+  return partner?.name ?? "Bilinmeyen";
+}
 
 interface ExpenseForm {
   amount: string;
   description: string;
   category: string;
   expense_date: string;
-  paid_by: "kasa" | "ortak1" | "ortak2";
+  paid_by: string;
   notes: string;
 }
 
-const EMPTY_FORM: ExpenseForm = {
-  amount: "",
-  description: "",
-  category: "",
-  expense_date: format(new Date(), "yyyy-MM-dd"),
-  paid_by: "kasa",
-  notes: "",
-};
+function emptyForm(): ExpenseForm {
+  return {
+    amount: "",
+    description: "",
+    category: "",
+    expense_date: format(new Date(), "yyyy-MM-dd"),
+    paid_by: "kasa",
+    notes: "",
+  };
+}
 
 export default function ExpenseList({
   initialExpenses,
+  partners,
 }: {
   initialExpenses: CompanyExpense[];
+  partners: Partner[];
 }) {
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState<ExpenseForm>(EMPTY_FORM);
+  const [form, setForm] = useState<ExpenseForm>(emptyForm());
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const supabase = createClient();
@@ -60,11 +65,8 @@ export default function ExpenseList({
     });
 
     setSaving(false);
-    if (insertError) {
-      setError("Gider eklenemedi: " + insertError.message);
-      return;
-    }
-    setForm(EMPTY_FORM);
+    if (insertError) { setError("Gider eklenemedi: " + insertError.message); return; }
+    setForm(emptyForm());
     setShowForm(false);
     router.refresh();
   }
@@ -98,7 +100,7 @@ export default function ExpenseList({
           </p>
         </div>
         <button
-          onClick={() => { setShowForm(true); setForm(EMPTY_FORM); }}
+          onClick={() => { setShowForm(true); setForm(emptyForm()); }}
           className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition"
         >
           <Plus size={16} /> Gider Ekle
@@ -131,9 +133,7 @@ export default function ExpenseList({
                   type="number"
                   value={form.amount}
                   onChange={(e) => setForm((p) => ({ ...p, amount: e.target.value }))}
-                  required
-                  min="0"
-                  step="0.01"
+                  required min="0" step="0.01"
                   className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="0.00"
                 />
@@ -164,14 +164,13 @@ export default function ExpenseList({
                 </label>
                 <select
                   value={form.paid_by}
-                  onChange={(e) =>
-                    setForm((p) => ({ ...p, paid_by: e.target.value as "kasa" | "ortak1" | "ortak2" }))
-                  }
+                  onChange={(e) => setForm((p) => ({ ...p, paid_by: e.target.value }))}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="kasa">Kasa</option>
-                  <option value="ortak1">Ortak 1</option>
-                  <option value="ortak2">Ortak 2</option>
+                  {partners.map((p) => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
                 </select>
               </div>
               <div>
@@ -185,26 +184,16 @@ export default function ExpenseList({
                 />
               </div>
             </div>
-
             {error && (
-              <p className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-                {error}
-              </p>
+              <p className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>
             )}
-
             <div className="flex gap-3">
-              <button
-                type="submit"
-                disabled={saving}
-                className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-5 py-2 rounded-lg transition disabled:opacity-50"
-              >
+              <button type="submit" disabled={saving}
+                className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-5 py-2 rounded-lg transition disabled:opacity-50">
                 {saving ? "Kaydediliyor..." : "Ekle"}
               </button>
-              <button
-                type="button"
-                onClick={() => setShowForm(false)}
-                className="bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium px-5 py-2 rounded-lg transition"
-              >
+              <button type="button" onClick={() => setShowForm(false)}
+                className="bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium px-5 py-2 rounded-lg transition">
                 İptal
               </button>
             </div>
@@ -222,62 +211,57 @@ export default function ExpenseList({
                 <th className="text-left px-6 py-3 font-semibold text-gray-600">Kategori</th>
                 <th className="text-right px-6 py-3 font-semibold text-gray-600">Tutar</th>
                 <th className="text-left px-6 py-3 font-semibold text-gray-600">Ödeyen</th>
-                <th className="text-left px-6 py-3 font-semibold text-gray-600">İade Durumu</th>
+                <th className="text-left px-6 py-3 font-semibold text-gray-600">İade</th>
                 <th className="px-6 py-3"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {initialExpenses.map((expense) => (
-                <tr key={expense.id} className="hover:bg-gray-50 transition">
-                  <td className="px-6 py-4 text-gray-600">
-                    {format(new Date(expense.expense_date), "dd MMM yyyy", { locale: tr })}
-                  </td>
-                  <td className="px-6 py-4 font-medium text-gray-800">{expense.description}</td>
-                  <td className="px-6 py-4 text-gray-500">{expense.category ?? "—"}</td>
-                  <td className="px-6 py-4 text-right font-semibold text-gray-800">
-                    ₺{Number(expense.amount).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
-                  </td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                        expense.paid_by === "kasa"
-                          ? "bg-blue-50 text-blue-700"
-                          : "bg-amber-50 text-amber-700"
-                      }`}
-                    >
-                      {PAID_BY_LABELS[expense.paid_by]}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    {expense.paid_by !== "kasa" ? (
-                      <button
-                        onClick={() => toggleReimbursed(expense)}
-                        className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full transition ${
-                          expense.reimbursed
-                            ? "bg-green-50 text-green-700"
-                            : "bg-orange-50 text-orange-600 hover:bg-orange-100"
-                        }`}
-                      >
-                        {expense.reimbursed ? (
-                          <><CheckCircle2 size={11} /> İade Edildi</>
-                        ) : (
-                          <><RotateCcw size={11} /> İade Bekliyor</>
-                        )}
+              {initialExpenses.map((expense) => {
+                const isPartner = expense.paid_by !== "kasa";
+                return (
+                  <tr key={expense.id} className="hover:bg-gray-50 transition">
+                    <td className="px-6 py-4 text-gray-600">
+                      {format(new Date(expense.expense_date), "dd MMM yyyy", { locale: tr })}
+                    </td>
+                    <td className="px-6 py-4 font-medium text-gray-800">{expense.description}</td>
+                    <td className="px-6 py-4 text-gray-500">{expense.category ?? "—"}</td>
+                    <td className="px-6 py-4 text-right font-semibold text-gray-800">
+                      ₺{Number(expense.amount).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                        isPartner ? "bg-amber-50 text-amber-700" : "bg-blue-50 text-blue-700"
+                      }`}>
+                        {getPaidByLabel(expense.paid_by, partners)}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      {isPartner ? (
+                        <button
+                          onClick={() => toggleReimbursed(expense)}
+                          className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full transition ${
+                            expense.reimbursed
+                              ? "bg-green-50 text-green-700"
+                              : "bg-orange-50 text-orange-600 hover:bg-orange-100"
+                          }`}
+                        >
+                          {expense.reimbursed
+                            ? <><CheckCircle2 size={11} /> İade Edildi</>
+                            : <><RotateCcw size={11} /> İade Bekliyor</>}
+                        </button>
+                      ) : (
+                        <span className="text-gray-300 text-xs">—</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <button onClick={() => handleDelete(expense.id)}
+                        className="text-gray-400 hover:text-red-500 transition">
+                        <Trash2 size={14} />
                       </button>
-                    ) : (
-                      <span className="text-gray-300 text-xs">—</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <button
-                      onClick={() => handleDelete(expense.id)}
-                      className="text-gray-400 hover:text-red-500 transition"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         ) : (

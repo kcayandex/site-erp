@@ -2,13 +2,13 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { TrendingUp, Wallet, TrendingDown, Users, AlertCircle } from "lucide-react";
+import type { Partner } from "@/types";
+import { TrendingUp, Wallet, TrendingDown, Users, AlertCircle, AlertTriangle } from "lucide-react";
 
 const MONTHS = [
   "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
   "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık",
 ];
-
 const YEARS = [2024, 2025, 2026, 2027];
 
 interface MonthData {
@@ -24,6 +24,7 @@ export default function KasaDashboard() {
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [data, setData] = useState<MonthData | null>(null);
+  const [partners, setPartners] = useState<Partner[]>([]);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
 
@@ -39,32 +40,19 @@ export default function KasaDashboard() {
       { data: payments },
       { data: sites },
       { data: expenses },
+      { data: partnerData },
     ] = await Promise.all([
-      supabase
-        .from("receipts")
-        .select("total_islenen, total_odened")
-        .gte("date", startDate)
-        .lte("date", endDate),
-      supabase
-        .from("monthly_payments")
-        .select("amount, site_id")
-        .eq("year", year)
-        .eq("month", month)
-        .not("paid_at", "is", null),
-      supabase
-        .from("sites")
-        .select("id, name, monthly_fee")
-        .eq("is_active", true),
-      supabase
-        .from("company_expenses")
-        .select("amount, description, paid_by, reimbursed")
-        .gte("expense_date", startDate)
-        .lte("expense_date", endDate),
+      supabase.from("receipts").select("total_islenen, total_odened").gte("date", startDate).lte("date", endDate),
+      supabase.from("monthly_payments").select("amount, site_id").eq("year", year).eq("month", month).not("paid_at", "is", null),
+      supabase.from("sites").select("id, name, monthly_fee").eq("is_active", true),
+      supabase.from("company_expenses").select("amount, description, paid_by, reimbursed").gte("expense_date", startDate).lte("expense_date", endDate),
+      supabase.from("partners").select("*").eq("is_active", true).order("created_at"),
     ]);
 
+    setPartners((partnerData ?? []) as Partner[]);
+
     const totalKar = (receipts ?? []).reduce(
-      (sum, r) => sum + (Number(r.total_islenen) - Number(r.total_odened)),
-      0
+      (sum, r) => sum + (Number(r.total_islenen) - Number(r.total_odened)), 0
     );
     const totalFees = (payments ?? []).reduce((sum, p) => sum + Number(p.amount), 0);
     const totalExpenses = (expenses ?? []).reduce((sum, e) => sum + Number(e.amount), 0);
@@ -84,27 +72,24 @@ export default function KasaDashboard() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
+  function getPartnerName(paidBy: string): string {
+    const p = partners.find((p) => p.id === paidBy);
+    return p?.name ?? "Bilinmeyen";
+  }
+
   const net = data ? data.totalKar + data.totalFees - data.totalExpenses : 0;
-  const share = net / 2;
+  const totalPct = partners.reduce((s, p) => s + Number(p.share_percentage), 0);
 
   return (
     <div className="space-y-6">
-      {/* Month/year selector */}
+      {/* Month selector */}
       <div className="flex items-center gap-3">
-        <select
-          value={month}
-          onChange={(e) => setMonth(Number(e.target.value))}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          {MONTHS.map((name, i) => (
-            <option key={i + 1} value={i + 1}>{name}</option>
-          ))}
+        <select value={month} onChange={(e) => setMonth(Number(e.target.value))}
+          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          {MONTHS.map((name, i) => <option key={i + 1} value={i + 1}>{name}</option>)}
         </select>
-        <select
-          value={year}
-          onChange={(e) => setYear(Number(e.target.value))}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
+        <select value={year} onChange={(e) => setYear(Number(e.target.value))}
+          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
           {YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
         </select>
       </div>
@@ -125,7 +110,6 @@ export default function KasaDashboard() {
               </p>
               <p className="text-xs text-gray-400 mt-1">İşlenen − Ödenen</p>
             </div>
-
             <div className="bg-green-50 border border-green-100 rounded-xl p-5">
               <div className="flex items-center gap-2 mb-2">
                 <Wallet size={18} className="text-green-600" />
@@ -136,7 +120,6 @@ export default function KasaDashboard() {
               </p>
               <p className="text-xs text-gray-400 mt-1">Tahsil edilenler</p>
             </div>
-
             <div className="bg-red-50 border border-red-100 rounded-xl p-5">
               <div className="flex items-center gap-2 mb-2">
                 <TrendingDown size={18} className="text-red-500" />
@@ -146,7 +129,6 @@ export default function KasaDashboard() {
                 ₺{data.totalExpenses.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
               </p>
             </div>
-
             <div className="bg-gray-900 rounded-xl p-5">
               <p className="text-xs text-gray-400 mb-2">Net KTurkey Geliri</p>
               <p className={`text-2xl font-bold ${net >= 0 ? "text-white" : "text-red-400"}`}>
@@ -158,24 +140,18 @@ export default function KasaDashboard() {
           {/* Breakdown */}
           <div className="bg-white rounded-xl border border-gray-200 p-6">
             <h3 className="font-semibold text-gray-700 mb-4">Hesaplama</h3>
-            <div className="space-y-0 text-sm divide-y divide-gray-100">
+            <div className="text-sm divide-y divide-gray-100">
               <div className="flex justify-between py-3">
                 <span className="text-gray-600">+ Makbuz Karı (İşlenen − Ödenen)</span>
-                <span className="font-semibold text-blue-700">
-                  ₺{data.totalKar.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
-                </span>
+                <span className="font-semibold text-blue-700">₺{data.totalKar.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}</span>
               </div>
               <div className="flex justify-between py-3">
                 <span className="text-gray-600">+ Tahsil Edilen Aylık Ücretler</span>
-                <span className="font-semibold text-green-700">
-                  ₺{data.totalFees.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
-                </span>
+                <span className="font-semibold text-green-700">₺{data.totalFees.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}</span>
               </div>
               <div className="flex justify-between py-3">
                 <span className="text-gray-600">− Şirket Giderleri</span>
-                <span className="font-semibold text-red-600">
-                  ₺{data.totalExpenses.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
-                </span>
+                <span className="font-semibold text-red-600">₺{data.totalExpenses.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}</span>
               </div>
               <div className="flex justify-between py-4 font-bold text-base">
                 <span className="text-gray-800">= Net Dağıtılabilir Kar</span>
@@ -186,25 +162,40 @@ export default function KasaDashboard() {
             </div>
           </div>
 
-          {/* Partner split */}
+          {/* Partner split — dynamic */}
           <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <Users size={16} className="text-gray-500" />
-              <h3 className="font-semibold text-gray-700">Ortak Dağılımı (%50 / %50)</h3>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              {["Ortak 1", "Ortak 2"].map((partner) => (
-                <div key={partner} className="bg-gray-50 rounded-xl p-5 text-center">
-                  <p className="text-sm text-gray-500 mb-1">{partner}</p>
-                  <p className={`text-2xl font-bold ${share >= 0 ? "text-gray-800" : "text-red-600"}`}>
-                    ₺{share.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
-                  </p>
-                  <p className="text-xs text-gray-400 mt-1">%50</p>
-                </div>
-              ))}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Users size={16} className="text-gray-500" />
+                <h3 className="font-semibold text-gray-700">Ortak Dağılımı</h3>
+              </div>
+              {totalPct !== 100 && (
+                <span className="flex items-center gap-1 text-xs text-amber-600 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full">
+                  <AlertTriangle size={11} /> Toplam %{totalPct} (100 olmalı)
+                </span>
+              )}
             </div>
 
-            {/* Pending reimbursements warning */}
+            {partners.length === 0 ? (
+              <p className="text-sm text-gray-400 text-center py-4">Ortaklar sayfasından ortak ekleyin.</p>
+            ) : (
+              <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${Math.min(partners.length, 3)}, 1fr)` }}>
+                {partners.map((partner) => {
+                  const share = net * (Number(partner.share_percentage) / 100);
+                  return (
+                    <div key={partner.id} className="bg-gray-50 rounded-xl p-4 text-center">
+                      <p className="text-sm text-gray-500 mb-1">{partner.name}</p>
+                      <p className={`text-xl font-bold ${share >= 0 ? "text-gray-800" : "text-red-600"}`}>
+                        ₺{share.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">%{partner.share_percentage}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Pending reimbursements */}
             {data.pendingReimbursements.length > 0 && (
               <div className="mt-5 bg-amber-50 border border-amber-200 rounded-xl p-4">
                 <div className="flex items-center gap-2 mb-3">
@@ -214,10 +205,11 @@ export default function KasaDashboard() {
                 <div className="space-y-1.5">
                   {data.pendingReimbursements.map((e, i) => (
                     <div key={i} className="flex justify-between text-sm text-amber-700">
-                      <span>{e.description} <span className="text-amber-500 text-xs">({e.paid_by === "ortak1" ? "Ortak 1" : "Ortak 2"})</span></span>
-                      <span className="font-semibold">
-                        ₺{e.amount.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                      <span>
+                        {e.description}{" "}
+                        <span className="text-amber-500 text-xs">({getPartnerName(e.paid_by)})</span>
                       </span>
+                      <span className="font-semibold">₺{e.amount.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}</span>
                     </div>
                   ))}
                 </div>
@@ -247,9 +239,7 @@ export default function KasaDashboard() {
               <div className="flex justify-between pt-3 border-t border-gray-200 text-sm font-bold">
                 <span className="text-gray-700">Toplam Bekleyen</span>
                 <span className="text-red-600">
-                  ₺{data.unpaidSites
-                    .reduce((s, x) => s + x.monthly_fee, 0)
-                    .toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                  ₺{data.unpaidSites.reduce((s, x) => s + x.monthly_fee, 0).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
                 </span>
               </div>
             </div>

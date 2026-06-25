@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import type { Site, MonthlyPayment } from "@/types";
-import { CheckCircle2, XCircle, X } from "lucide-react";
+import { CheckCircle2, XCircle, X, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 
@@ -12,7 +12,6 @@ const MONTHS = [
   "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
   "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık",
 ];
-
 const YEARS = [2024, 2025, 2026, 2027];
 
 interface PayForm {
@@ -24,13 +23,30 @@ interface PayForm {
   notes: string;
 }
 
-export default function MonthlyFeeList({ sites }: { sites: Site[] }) {
+function monthsBetween(startStr: string, endStr: string): number {
+  const start = new Date(startStr);
+  const end = new Date(endStr);
+  return (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth()) + 1;
+}
+
+function fmtDate(dateStr: string): string {
+  return dateStr.slice(0, 7).split("-").reverse().join(".");
+}
+
+export default function MonthlyFeeList({
+  sites,
+  allPaidPayments,
+}: {
+  sites: Site[];
+  allPaidPayments: { site_id: string; amount: number }[];
+}) {
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [payments, setPayments] = useState<Record<string, MonthlyPayment>>({});
   const [payForm, setPayForm] = useState<PayForm | null>(null);
   const [saving, setSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState<"aylik" | "sozlesme">("aylik");
   const supabase = createClient();
   const router = useRouter();
 
@@ -46,6 +62,17 @@ export default function MonthlyFeeList({ sites }: { sites: Site[] }) {
   }, [year, month, supabase]);
 
   useEffect(() => { fetchPayments(); }, [fetchPayments]);
+
+  // Contract stats from server-provided all-time payments
+  const contractStats = useMemo(() => {
+    const stats: Record<string, { paidMonths: number; paidAmount: number }> = {};
+    allPaidPayments.forEach((p) => {
+      if (!stats[p.site_id]) stats[p.site_id] = { paidMonths: 0, paidAmount: 0 };
+      stats[p.site_id].paidMonths++;
+      stats[p.site_id].paidAmount += Number(p.amount);
+    });
+    return stats;
+  }, [allPaidPayments]);
 
   function openPayForm(site: Site) {
     setPayForm({
@@ -96,49 +123,232 @@ export default function MonthlyFeeList({ sites }: { sites: Site[] }) {
     .filter((p) => p.paid_at)
     .reduce((sum, p) => sum + Number(p.amount), 0);
 
+  const sitesWithContracts = activeSites.filter(
+    (s) => s.contract_start_date && s.contract_end_date
+  );
+
   return (
     <div className="space-y-5">
-      {/* Month/year selector */}
-      <div className="flex items-center gap-3">
-        <select
-          value={month}
-          onChange={(e) => setMonth(Number(e.target.value))}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+      {/* Tabs */}
+      <div className="flex gap-1 bg-gray-100 p-1 rounded-xl w-fit">
+        <button
+          onClick={() => setActiveTab("aylik")}
+          className={`px-4 py-2 text-sm font-medium rounded-lg transition ${
+            activeTab === "aylik"
+              ? "bg-white text-gray-800 shadow-sm"
+              : "text-gray-500 hover:text-gray-700"
+          }`}
         >
-          {MONTHS.map((name, i) => (
-            <option key={i + 1} value={i + 1}>{name}</option>
-          ))}
-        </select>
-        <select
-          value={year}
-          onChange={(e) => setYear(Number(e.target.value))}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          Aylık Takip
+        </button>
+        <button
+          onClick={() => setActiveTab("sozlesme")}
+          className={`px-4 py-2 text-sm font-medium rounded-lg transition ${
+            activeTab === "sozlesme"
+              ? "bg-white text-gray-800 shadow-sm"
+              : "text-gray-500 hover:text-gray-700"
+          }`}
         >
-          {YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
-        </select>
+          Sözleşme Durumu
+        </button>
       </div>
 
-      {/* Summary cards */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <p className="text-xs text-gray-500">Beklenen Toplam</p>
-          <p className="text-xl font-bold text-gray-800 mt-1">
-            ₺{totalExpected.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
-          </p>
+      {/* ── AYLIK TAKİP ── */}
+      {activeTab === "aylik" && (
+        <>
+          <div className="flex items-center gap-3">
+            <select
+              value={month}
+              onChange={(e) => setMonth(Number(e.target.value))}
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {MONTHS.map((name, i) => (
+                <option key={i + 1} value={i + 1}>{name}</option>
+              ))}
+            </select>
+            <select
+              value={year}
+              onChange={(e) => setYear(Number(e.target.value))}
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
+            </select>
+          </div>
+
+          {/* Summary */}
+          <div className="grid grid-cols-3 gap-4">
+            <div className="bg-white rounded-xl border border-gray-200 p-4">
+              <p className="text-xs text-gray-500">Beklenen</p>
+              <p className="text-xl font-bold text-gray-800 mt-1">
+                ₺{totalExpected.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+              </p>
+            </div>
+            <div className="bg-white rounded-xl border border-green-100 p-4">
+              <p className="text-xs text-gray-500">Tahsil Edilen</p>
+              <p className="text-xl font-bold text-green-600 mt-1">
+                ₺{totalCollected.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+              </p>
+            </div>
+            <div className="bg-white rounded-xl border border-red-100 p-4">
+              <p className="text-xs text-gray-500">Bekleyen</p>
+              <p className="text-xl font-bold text-red-500 mt-1">
+                ₺{(totalExpected - totalCollected).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+              </p>
+            </div>
+          </div>
+
+          {/* Table */}
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="text-left px-6 py-3 font-semibold text-gray-600">Site</th>
+                  <th className="text-right px-6 py-3 font-semibold text-gray-600">Aylık Ücret</th>
+                  <th className="text-left px-6 py-3 font-semibold text-gray-600">Durum</th>
+                  <th className="text-left px-6 py-3 font-semibold text-gray-600">Ödeme Tarihi</th>
+                  <th className="text-left px-6 py-3 font-semibold text-gray-600">Yöntem</th>
+                  <th className="px-6 py-3"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {activeSites.map((site) => {
+                  const payment = payments[site.id];
+                  const isPaid = !!payment?.paid_at;
+                  return (
+                    <tr key={site.id} className="hover:bg-gray-50 transition">
+                      <td className="px-6 py-4 font-medium text-gray-800">{site.name}</td>
+                      <td className="px-6 py-4 text-right font-semibold text-gray-700">
+                        ₺{Number(site.monthly_fee).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                      </td>
+                      <td className="px-6 py-4">
+                        {isPaid ? (
+                          <span className="inline-flex items-center gap-1.5 text-green-700 bg-green-50 text-xs font-medium px-2.5 py-1 rounded-full">
+                            <CheckCircle2 size={12} /> Ödendi
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 text-red-600 bg-red-50 text-xs font-medium px-2.5 py-1 rounded-full">
+                            <XCircle size={12} /> Ödenmedi
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-gray-600">
+                        {payment?.paid_at
+                          ? format(new Date(payment.paid_at), "dd MMM yyyy", { locale: tr })
+                          : "—"}
+                      </td>
+                      <td className="px-6 py-4 text-gray-600 capitalize">
+                        {payment?.payment_method ?? "—"}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        {isPaid ? (
+                          <button
+                            onClick={() => handleMarkUnpaid(site.id)}
+                            className="text-xs text-gray-400 hover:text-red-500 transition"
+                          >
+                            Geri Al
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => openPayForm(site)}
+                            className="text-xs bg-green-600 hover:bg-green-700 text-white font-medium px-3 py-1.5 rounded-lg transition"
+                          >
+                            Ödendi
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+                {activeSites.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="text-center py-12 text-gray-400">
+                      Aktif site bulunamadı.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+
+      {/* ── SÖZLEŞME DURUMU ── */}
+      {activeTab === "sozlesme" && (
+        <div className="space-y-4">
+          {sitesWithContracts.length === 0 ? (
+            <div className="bg-white rounded-xl border border-gray-200 text-center py-16 text-gray-400">
+              <FileText size={36} className="mx-auto mb-3 opacity-40" />
+              <p>Sözleşme tarihi girilmiş site yok.</p>
+              <p className="text-sm mt-1">Siteler sayfasından sözleşme başlangıç/bitiş tarihi ekleyin.</p>
+            </div>
+          ) : (
+            sitesWithContracts.map((site) => {
+              const stats = contractStats[site.id] ?? { paidMonths: 0, paidAmount: 0 };
+              const totalMonths = monthsBetween(site.contract_start_date!, site.contract_end_date!);
+              const totalAmount = Number(site.monthly_fee) * totalMonths;
+              const remainingMonths = Math.max(0, totalMonths - stats.paidMonths);
+              const remainingAmount = Math.max(0, totalAmount - stats.paidAmount);
+              const progress = totalMonths > 0 ? Math.min(100, (stats.paidMonths / totalMonths) * 100) : 0;
+
+              return (
+                <div key={site.id} className="bg-white rounded-xl border border-gray-200 p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <h3 className="font-semibold text-gray-800">{site.name}</h3>
+                      <p className="text-sm text-gray-500 mt-0.5">
+                        {fmtDate(site.contract_start_date!)} → {fmtDate(site.contract_end_date!)}
+                        <span className="ml-2 text-gray-400">({totalMonths} ay)</span>
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs text-gray-400">Aylık</p>
+                      <p className="font-semibold text-gray-800">
+                        ₺{Number(site.monthly_fee).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Progress bar */}
+                  <div className="w-full bg-gray-100 rounded-full h-2.5 mb-4">
+                    <div
+                      className="bg-blue-600 h-2.5 rounded-full transition-all"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                      <p className="text-xs text-gray-500">Ödenen</p>
+                      <p className="font-bold text-green-600 mt-0.5">{stats.paidMonths} ay</p>
+                      <p className="text-xs text-gray-400">
+                        ₺{stats.paidAmount.toLocaleString("tr-TR", { minimumFractionDigits: 0 })}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Kalan</p>
+                      <p className="font-bold text-red-500 mt-0.5">{remainingMonths} ay</p>
+                      <p className="text-xs text-gray-400">
+                        ₺{remainingAmount.toLocaleString("tr-TR", { minimumFractionDigits: 0 })}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Toplam Sözleşme</p>
+                      <p className="font-bold text-gray-800 mt-0.5">{totalMonths} ay</p>
+                      <p className="text-xs text-gray-400">
+                        ₺{totalAmount.toLocaleString("tr-TR", { minimumFractionDigits: 0 })}
+                      </p>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-gray-400 text-right mt-3">
+                    %{Math.round(progress)} tamamlandı
+                  </p>
+                </div>
+              );
+            })
+          )}
         </div>
-        <div className="bg-white rounded-xl border border-green-100 p-4">
-          <p className="text-xs text-gray-500">Tahsil Edilen</p>
-          <p className="text-xl font-bold text-green-600 mt-1">
-            ₺{totalCollected.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
-          </p>
-        </div>
-        <div className="bg-white rounded-xl border border-red-100 p-4">
-          <p className="text-xs text-gray-500">Bekleyen</p>
-          <p className="text-xl font-bold text-red-500 mt-1">
-            ₺{(totalExpected - totalCollected).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
-          </p>
-        </div>
-      </div>
+      )}
 
       {/* Payment modal */}
       {payForm && (
@@ -157,8 +367,7 @@ export default function MonthlyFeeList({ sites }: { sites: Site[] }) {
                   type="number"
                   value={payForm.amount}
                   onChange={(e) => setPayForm((p) => p && { ...p, amount: e.target.value })}
-                  min="0"
-                  step="0.01"
+                  min="0" step="0.01"
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -183,7 +392,7 @@ export default function MonthlyFeeList({ sites }: { sites: Site[] }) {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Not (opsiyonel)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Not</label>
                 <input
                   type="text"
                   value={payForm.notes}
@@ -210,79 +419,6 @@ export default function MonthlyFeeList({ sites }: { sites: Site[] }) {
           </div>
         </div>
       )}
-
-      {/* Sites table */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b border-gray-200">
-            <tr>
-              <th className="text-left px-6 py-3 font-semibold text-gray-600">Site</th>
-              <th className="text-right px-6 py-3 font-semibold text-gray-600">Aylık Ücret</th>
-              <th className="text-left px-6 py-3 font-semibold text-gray-600">Durum</th>
-              <th className="text-left px-6 py-3 font-semibold text-gray-600">Ödeme Tarihi</th>
-              <th className="text-left px-6 py-3 font-semibold text-gray-600">Yöntem</th>
-              <th className="px-6 py-3"></th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {activeSites.map((site) => {
-              const payment = payments[site.id];
-              const isPaid = !!payment?.paid_at;
-              return (
-                <tr key={site.id} className="hover:bg-gray-50 transition">
-                  <td className="px-6 py-4 font-medium text-gray-800">{site.name}</td>
-                  <td className="px-6 py-4 text-right font-semibold text-gray-700">
-                    ₺{Number(site.monthly_fee).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
-                  </td>
-                  <td className="px-6 py-4">
-                    {isPaid ? (
-                      <span className="inline-flex items-center gap-1.5 text-green-700 bg-green-50 text-xs font-medium px-2.5 py-1 rounded-full">
-                        <CheckCircle2 size={12} /> Ödendi
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1.5 text-red-600 bg-red-50 text-xs font-medium px-2.5 py-1 rounded-full">
-                        <XCircle size={12} /> Ödenmedi
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 text-gray-600">
-                    {payment?.paid_at
-                      ? format(new Date(payment.paid_at), "dd MMM yyyy", { locale: tr })
-                      : "—"}
-                  </td>
-                  <td className="px-6 py-4 text-gray-600 capitalize">
-                    {payment?.payment_method ?? "—"}
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    {isPaid ? (
-                      <button
-                        onClick={() => handleMarkUnpaid(site.id)}
-                        className="text-xs text-gray-400 hover:text-red-500 transition"
-                      >
-                        Geri Al
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => openPayForm(site)}
-                        className="text-xs bg-green-600 hover:bg-green-700 text-white font-medium px-3 py-1.5 rounded-lg transition"
-                      >
-                        Ödendi
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
-            {activeSites.length === 0 && (
-              <tr>
-                <td colSpan={6} className="text-center py-12 text-gray-400">
-                  Aktif site bulunamadı.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
     </div>
   );
 }

@@ -13,9 +13,14 @@ interface SiteFormData {
   abbreviation: string;
   vergi_no: string;
   monthly_fee: string;
+  contract_start_date: string;
+  contract_end_date: string;
 }
 
-const EMPTY_FORM: SiteFormData = { name: "", address: "", abbreviation: "", vergi_no: "", monthly_fee: "" };
+const EMPTY_FORM: SiteFormData = {
+  name: "", address: "", abbreviation: "", vergi_no: "", monthly_fee: "",
+  contract_start_date: "", contract_end_date: "",
+};
 
 export default function SiteList({
   sites,
@@ -48,6 +53,8 @@ export default function SiteList({
       abbreviation: site.abbreviation,
       vergi_no: site.vergi_no ?? "",
       monthly_fee: String(site.monthly_fee ?? 0),
+      contract_start_date: site.contract_start_date ?? "",
+      contract_end_date: site.contract_end_date ?? "",
     });
     setShowForm(true);
     setError(null);
@@ -75,6 +82,8 @@ export default function SiteList({
           abbreviation: form.abbreviation.toUpperCase(),
           vergi_no: form.vergi_no || null,
           monthly_fee: parseFloat(form.monthly_fee) || 0,
+          contract_start_date: form.contract_start_date || null,
+          contract_end_date: form.contract_end_date || null,
         })
         .eq("id", editingSite.id);
 
@@ -90,6 +99,8 @@ export default function SiteList({
         abbreviation: form.abbreviation.toUpperCase(),
         vergi_no: form.vergi_no || null,
         monthly_fee: parseFloat(form.monthly_fee) || 0,
+        contract_start_date: form.contract_start_date || null,
+        contract_end_date: form.contract_end_date || null,
         is_active: true,
       });
 
@@ -219,6 +230,32 @@ export default function SiteList({
                   placeholder="0.00"
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Sözleşme Başlangıç
+                </label>
+                <input
+                  type="date"
+                  value={form.contract_start_date}
+                  onChange={(e) =>
+                    setForm((p) => ({ ...p, contract_start_date: e.target.value }))
+                  }
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Sözleşme Bitiş
+                </label>
+                <input
+                  type="date"
+                  value={form.contract_end_date}
+                  onChange={(e) =>
+                    setForm((p) => ({ ...p, contract_end_date: e.target.value }))
+                  }
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
             </div>
 
             {error && (
@@ -296,8 +333,13 @@ export default function SiteList({
               <p className="text-xs text-gray-400 mt-1">Vergi No: {site.vergi_no}</p>
             )}
             <p className="text-xs text-blue-600 font-semibold mt-1">
-              Aylık Ücret: ₺{Number(site.monthly_fee).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+              Aylık: ₺{Number(site.monthly_fee).toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
             </p>
+            {site.contract_start_date && site.contract_end_date && (
+              <p className="text-xs text-gray-400 mt-0.5">
+                Sözleşme: {site.contract_start_date.slice(0, 7).split("-").reverse().join(".")} → {site.contract_end_date.slice(0, 7).split("-").reverse().join(".")}
+              </p>
+            )}
             <div className="mt-2">
               <span
                 className={`text-xs px-2 py-0.5 rounded-full font-medium ${

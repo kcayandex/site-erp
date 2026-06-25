@@ -9,22 +9,27 @@ export default async function GiderlerPage() {
   const startDate = format(startOfMonth(now), "yyyy-MM-dd");
   const endDate = format(endOfMonth(now), "yyyy-MM-dd");
 
-  const { data: expenses } = await supabase
-    .from("company_expenses")
-    .select("*")
-    .gte("expense_date", startDate)
-    .lte("expense_date", endDate)
-    .order("expense_date", { ascending: false });
+  const [{ data: expenses }, { data: partners }] = await Promise.all([
+    supabase
+      .from("company_expenses")
+      .select("*")
+      .gte("expense_date", startDate)
+      .lte("expense_date", endDate)
+      .order("expense_date", { ascending: false }),
+    supabase
+      .from("partners")
+      .select("*")
+      .eq("is_active", true)
+      .order("created_at"),
+  ]);
 
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold text-gray-800">Şirket Giderleri</h2>
-        <p className="text-gray-500 text-sm mt-1">
-          KTurkey şirket giderleri — bu ay
-        </p>
+        <p className="text-gray-500 text-sm mt-1">KTurkey şirket giderleri — bu ay</p>
       </div>
-      <ExpenseList initialExpenses={expenses ?? []} />
+      <ExpenseList initialExpenses={expenses ?? []} partners={partners ?? []} />
     </div>
   );
 }
