@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { Plus, FileText, Printer } from "lucide-react";
 import ReceiptActions from "@/components/receipts/ReceiptActions";
+import ReceiptAuditLog from "@/components/receipts/ReceiptAuditLog";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 
@@ -101,6 +102,7 @@ export default async function ReceiptsPage() {
           </div>
         )}
       </div>
+      <ReceiptAuditLog />
     </div>
   );
 }
