@@ -75,7 +75,13 @@ export default function KasaDashboard() {
     );
     const totalFeesCash = (payments ?? []).filter((p) => p.payment_method === "nakit").reduce((sum, p) => sum + Number(p.amount), 0);
     const totalFeesBank = (payments ?? []).filter((p) => p.payment_method === "havale").reduce((sum, p) => sum + Number(p.amount), 0);
-    const totalExpenses = (expenses ?? []).reduce((sum, e) => sum + Number(e.amount), 0);
+    // Only count what actually left the kasa:
+    // - kasa-paid expenses: full amount
+    // - partner-paid expenses: only the portion already reimbursed from kasa
+    const totalExpenses = (expenses ?? []).reduce((sum, e) => {
+      if (e.paid_by === "kasa") return sum + Number(e.amount);
+      return sum + Number(e.reimbursed_amount ?? 0);
+    }, 0);
     const totalDistributed = (distributionData ?? []).reduce((sum, d) => {
       return sum + Object.values(d.partner_amounts as Record<string, number>).reduce((s, v) => s + Number(v), 0);
     }, 0);
@@ -200,7 +206,7 @@ export default function KasaDashboard() {
             <div className="bg-red-50 border border-red-100 rounded-xl p-5">
               <div className="flex items-center gap-2 mb-2">
                 <TrendingDown size={18} className="text-red-500" />
-                <p className="text-xs text-gray-500">Şirket Giderleri</p>
+                <p className="text-xs text-gray-500">Kasadan Çıkan Giderler</p>
               </div>
               <p className="text-xl font-bold text-red-600">
                 ₺{data.totalExpenses.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
@@ -252,7 +258,7 @@ export default function KasaDashboard() {
                 </div>
               )}
               <div className="flex justify-between py-3">
-                <span className="text-gray-600">− Şirket Giderleri</span>
+                <span className="text-gray-600">− Kasadan Çıkan Giderler</span>
                 <span className="font-semibold text-red-600">₺{data.totalExpenses.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}</span>
               </div>
               {data.totalDistributed > 0 && (
