@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils/cn";
 import {
   LayoutDashboard, Building2, FileText, HardHat, BarChart3,
-  CalendarCheck, Receipt, Vault, Users, UserCheck, Shield,
+  CalendarCheck, Receipt, Vault, Users, UserCheck, Shield, ScrollText,
 } from "lucide-react";
 
 const navItems = [
@@ -25,12 +25,17 @@ const adminItems = [
   { href: "/admin/sayfa-yetkileri", label: "Sayfa Yetkileri", icon: Shield },
 ];
 
+const superadminItems = [
+  { href: "/admin/islem-gecmisi", label: "İşlem Geçmişi", icon: ScrollText },
+];
+
 interface SidebarProps {
   isAdmin: boolean;
+  isSuperAdmin?: boolean;
   allowedPages?: string[];
 }
 
-export default function Sidebar({ isAdmin, allowedPages }: SidebarProps) {
+export default function Sidebar({ isAdmin, isSuperAdmin, allowedPages }: SidebarProps) {
   const pathname = usePathname();
 
   const visibleNavItems = isAdmin
@@ -75,6 +80,15 @@ export default function Sidebar({ isAdmin, allowedPages }: SidebarProps) {
               </p>
             </div>
             {adminItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link key={item.href} href={item.href} className={linkClass(item.href)}>
+                  <Icon size={16} />
+                  {item.label}
+                </Link>
+              );
+            })}
+            {isSuperAdmin && superadminItems.map((item) => {
               const Icon = item.icon;
               return (
                 <Link key={item.href} href={item.href} className={linkClass(item.href)}>

@@ -15,6 +15,7 @@ export default async function ProtectedLayout({
 
   const { data: role } = await supabase.rpc("get_my_role");
   const isAdmin = role === "admin" || role === "superadmin";
+  const isSuperAdmin = role === "superadmin";
 
   // For non-admin users, fetch allowed pages from page_access table
   let allowedPages: string[] | undefined = undefined;
@@ -31,7 +32,7 @@ export default async function ProtectedLayout({
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <Sidebar isAdmin={isAdmin} allowedPages={allowedPages} />
+      <Sidebar isAdmin={isAdmin} isSuperAdmin={isSuperAdmin} allowedPages={allowedPages} />
       <div className="flex flex-col flex-1 overflow-hidden">
         <Header userEmail={session.user.email ?? ""} />
         <main className="flex-1 overflow-y-auto p-6 print:p-0 print:overflow-visible">
