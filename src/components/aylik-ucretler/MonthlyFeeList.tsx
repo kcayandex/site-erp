@@ -149,7 +149,17 @@ export default function MonthlyFeeList({
   }
 
   const activeSites = sites.filter((s) => s.is_active);
-  const totalExpected = activeSites.reduce(
+
+  // Only sites whose contract covers the selected month
+  const sitesInMonth = activeSites.filter((s) => {
+    if (!s.contract_start_date || !s.contract_end_date) return false;
+    const monthStart = `${year}-${String(month).padStart(2, "0")}-01`;
+    const lastDay = new Date(year, month, 0).getDate();
+    const monthEnd = `${year}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+    return s.contract_start_date <= monthEnd && s.contract_end_date >= monthStart;
+  });
+
+  const totalExpected = sitesInMonth.reduce(
     (sum, s) => sum + getApplicableFee(s.id, year, month, feePeriods, Number(s.monthly_fee)),
     0
   );
@@ -245,7 +255,7 @@ export default function MonthlyFeeList({
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {activeSites.map((site) => {
+                {sitesInMonth.map((site) => {
                   const payment = payments[site.id];
                   const isPaid = !!payment?.paid_at;
                   return (
