@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import SiteList from "@/components/sites/SiteList";
+import ContractAlerts from "@/components/sites/ContractAlerts";
 
 export default async function SitesPage() {
   const supabase = await createClient();
@@ -19,6 +20,7 @@ export default async function SitesPage() {
           {sites?.filter((s) => s.is_active).length ?? 0} aktif site
         </p>
       </div>
+      <ContractAlerts sites={sites ?? []} />
       <SiteList sites={sites ?? []} isAdmin={isAdmin} />
     </div>
   );

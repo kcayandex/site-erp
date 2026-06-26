@@ -4,9 +4,11 @@ import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { Partner, KasaSettlement } from "@/types";
 import KasaDistributions from "./KasaDistributions";
+import PartnerAdvances from "./PartnerAdvances";
+import Link from "next/link";
 import {
   TrendingUp, Wallet, TrendingDown, Users,
-  AlertTriangle, CheckCircle2, Lock,
+  AlertTriangle, CheckCircle2, Lock, CalendarDays,
 } from "lucide-react";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
@@ -18,11 +20,13 @@ const MONTHS = [
 const YEARS = [2024, 2025, 2026, 2027];
 
 interface MonthData {
+  openingBalance: number;
   totalKar: number;
   totalFeesCash: number;
   totalFeesBank: number;
   totalExpenses: number;
   totalDistributed: number;
+  pendingAdvances: Record<string, number>;
   unpaidSites: { name: string; monthly_fee: number }[];
   pendingReimbursements: { description: string; amount: number; paid_by: string }[];
 }
@@ -57,6 +61,8 @@ export default function KasaDashboard() {
       { data: partnerData },
       { data: settlementData },
       { data: distributionData },
+      { data: recentSettlements },
+      { data: advancesData },
     ] = await Promise.all([
       supabase.from("receipts").select("total_islenen, total_odenen").gte("date", startDate).lte("date", endDate),
       supabase.from("monthly_payments").select("amount, site_id, payment_method").eq("year", year).eq("month", month).not("paid_at", "is", null),
@@ -65,7 +71,15 @@ export default function KasaDashboard() {
       supabase.from("partners").select("*").eq("is_active", true).order("created_at"),
       supabase.from("kasa_settlements").select("*").eq("year", year).eq("month", month).maybeSingle(),
       supabase.from("kasa_distributions").select("partner_amounts").gte("distribution_date", startDate).lte("distribution_date", endDate),
+      supabase.from("kasa_settlements").select("closing_balance, year, month").order("year", { ascending: false }).order("month", { ascending: false }).limit(24),
+      supabase.from("partner_advances").select("partner_id, amount").eq("settled", false),
     ]);
+
+    // Devreden bakiye: en son kapatılmış aydan gelen kapanış bakiyesi
+    const prevSettlement = (recentSettlements ?? []).find(
+      (s) => s.year < year || (s.year === year && s.month < month)
+    );
+    const openingBalance = Number(prevSettlement?.closing_balance ?? 0);
 
     setPartners((partnerData ?? []) as Partner[]);
     setSettlement(settlementData as KasaSettlement | null);
@@ -86,6 +100,12 @@ export default function KasaDashboard() {
       return sum + Object.values(d.partner_amounts as Record<string, number>).reduce((s, v) => s + Number(v), 0);
     }, 0);
 
+    // Ortak avans borçları (henüz kapatılmamış)
+    const pendingAdvances: Record<string, number> = {};
+    (advancesData ?? []).forEach((a) => {
+      pendingAdvances[a.partner_id] = (pendingAdvances[a.partner_id] ?? 0) + Number(a.amount);
+    });
+
     const paidSiteIds = new Set((payments ?? []).map((p) => p.site_id));
     const unpaidSites = (sites ?? [])
       .filter((s) => !paidSiteIds.has(s.id))
@@ -100,7 +120,7 @@ export default function KasaDashboard() {
       }))
       .filter((e) => e.amount > 0);
 
-    setData({ totalKar, totalFeesCash, totalFeesBank, totalExpenses, totalDistributed, unpaidSites, pendingReimbursements });
+    setData({ openingBalance, totalKar, totalFeesCash, totalFeesBank, totalExpenses, totalDistributed, pendingAdvances, unpaidSites, pendingReimbursements });
     setLoading(false);
   }, [year, month, supabase, getDateRange]);
 
@@ -130,6 +150,7 @@ export default function KasaDashboard() {
         year,
         month,
         total_distributed: net,
+        closing_balance: net,
       }),
     ]);
 
@@ -144,7 +165,9 @@ export default function KasaDashboard() {
     fetchData();
   }
 
-  const net = data ? data.totalKar + data.totalFeesCash - data.totalExpenses - data.totalDistributed : 0;
+  const net = data
+    ? data.openingBalance + data.totalKar + data.totalFeesCash - data.totalExpenses - data.totalDistributed
+    : 0;
   const totalPct = partners.reduce((s, p) => s + Number(p.share_percentage), 0);
 
   // Per-partner owed reimbursements
@@ -157,8 +180,9 @@ export default function KasaDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Month selector */}
-      <div className="flex items-center gap-3">
+      {/* Header row */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
         <select value={month} onChange={(e) => setMonth(Number(e.target.value))}
           className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
           {MONTHS.map((name, i) => <option key={i + 1} value={i + 1}>{name}</option>)}
@@ -168,13 +192,20 @@ export default function KasaDashboard() {
           {YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
         </select>
 
-        {/* Settlement badge */}
-        {!loading && settlement && (
-          <span className="flex items-center gap-1.5 text-sm font-medium text-green-700 bg-green-50 border border-green-200 px-3 py-1.5 rounded-full">
-            <CheckCircle2 size={14} />
-            Kapatıldı — {format(new Date(settlement.settled_at), "dd MMM yyyy", { locale: tr })}
-          </span>
-        )}
+          {/* Settlement badge */}
+          {!loading && settlement && (
+            <span className="flex items-center gap-1.5 text-sm font-medium text-green-700 bg-green-50 border border-green-200 px-3 py-1.5 rounded-full">
+              <CheckCircle2 size={14} />
+              Kapatıldı — {format(new Date(settlement.settled_at), "dd MMM yyyy", { locale: tr })}
+            </span>
+          )}
+        </div>
+        <Link
+          href="/kasa/yillik"
+          className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 border border-gray-200 rounded-lg px-3 py-2 transition hover:bg-gray-50"
+        >
+          <CalendarDays size={14} /> Yıllık Özet
+        </Link>
       </div>
 
       {loading ? (
@@ -243,6 +274,14 @@ export default function KasaDashboard() {
           <div className="bg-white rounded-xl border border-gray-200 p-6">
             <h3 className="font-semibold text-gray-700 mb-4">Hesaplama</h3>
             <div className="text-sm divide-y divide-gray-100">
+              {data.openingBalance !== 0 && (
+                <div className="flex justify-between py-3">
+                  <span className="text-gray-600">+ Devreden Bakiye (önceki ay)</span>
+                  <span className={`font-semibold ${data.openingBalance >= 0 ? "text-gray-700" : "text-red-600"}`}>
+                    ₺{data.openingBalance.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+              )}
               <div className="flex justify-between py-3">
                 <span className="text-gray-600">+ Makbuz Karı (İşlenen − Ödenen)</span>
                 <span className="font-semibold text-blue-700">₺{data.totalKar.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}</span>
@@ -297,7 +336,8 @@ export default function KasaDashboard() {
                 {partners.map((partner) => {
                   const profitShare = net * (Number(partner.share_percentage) / 100);
                   const owed = partnerReimbursements[partner.id] ?? 0;
-                  const total = profitShare + owed;
+                  const advanceDebt = data?.pendingAdvances[partner.id] ?? 0;
+                  const total = profitShare + owed - advanceDebt;
                   return (
                     <div key={partner.id} className="bg-gray-50 rounded-xl p-4">
                       <div className="flex items-center justify-between mb-3">
@@ -318,6 +358,14 @@ export default function KasaDashboard() {
                             <span>İade Alacağı</span>
                             <span className="font-medium">
                               + ₺{owed.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                            </span>
+                          </div>
+                        )}
+                        {advanceDebt > 0 && (
+                          <div className="flex justify-between text-rose-600">
+                            <span>Avans Borcu</span>
+                            <span className="font-medium">
+                              − ₺{advanceDebt.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
                             </span>
                           </div>
                         )}
@@ -371,6 +419,9 @@ export default function KasaDashboard() {
               )}
             </div>
           </div>
+
+          {/* Partner advances */}
+          <PartnerAdvances partners={partners} onDataChange={fetchData} />
 
           {/* Distribution records */}
           <KasaDistributions partners={partners} />
