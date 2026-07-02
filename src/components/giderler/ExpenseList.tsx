@@ -4,9 +4,16 @@ import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import type { CompanyExpense, Partner } from "@/types";
-import { Plus, Trash2, RotateCcw, CheckCircle2 } from "lucide-react";
-import { format } from "date-fns";
+import { Plus, Trash2, RotateCcw, CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
+import { format, addMonths, subMonths, startOfMonth } from "date-fns";
 import { tr } from "date-fns/locale";
+
+const PRESETS = [
+  { key: "thismonth", label: "Bu Ay" },
+  { key: "lastmonth", label: "Geçen Ay" },
+  { key: "last3months", label: "Son 3 Ay" },
+  { key: "last6months", label: "Son 6 Ay" },
+] as const;
 
 const CATEGORIES = ["Ofis", "Ulaşım", "Yazılım", "Yemek", "Kira", "Diğer"];
 
@@ -39,9 +46,13 @@ function emptyForm(): ExpenseForm {
 export default function ExpenseList({
   initialExpenses,
   partners,
+  activePreset,
+  activeMonth,
 }: {
   initialExpenses: CompanyExpense[];
   partners: Partner[];
+  activePreset: string;
+  activeMonth?: string;
 }) {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<ExpenseForm>(emptyForm());
@@ -50,6 +61,33 @@ export default function ExpenseList({
   const [partialPay, setPartialPay] = useState<{ id: string; input: string } | null>(null);
   const supabase = createClient();
   const router = useRouter();
+
+  const isMultiMonth = activePreset === "last3months" || activePreset === "last6months";
+
+  function getNavMonth(): Date {
+    if (activeMonth) {
+      const [y, m] = activeMonth.split("-").map(Number);
+      return new Date(y, m - 1, 1);
+    }
+    if (activePreset === "lastmonth") return subMonths(new Date(), 1);
+    return startOfMonth(new Date());
+  }
+
+  const navMonth = getNavMonth();
+
+  function goToMonth(date: Date) {
+    router.push(`?month=${format(date, "yyyy-MM")}`);
+  }
+
+  function goToPreset(preset: string) {
+    router.push(`?preset=${preset}`);
+  }
+
+  function getPeriodLabel() {
+    if (activePreset === "last3months") return "Son 3 Ay Toplam Gider";
+    if (activePreset === "last6months") return "Son 6 Ay Toplam Gider";
+    return `${format(navMonth, "MMMM yyyy", { locale: tr })} Toplam Gider`;
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -108,9 +146,47 @@ export default function ExpenseList({
 
   return (
     <div className="space-y-5">
+      {/* Filtre çubuğu */}
+      <div className="bg-white rounded-xl border border-gray-200 px-5 py-4 space-y-3">
+        <div className="flex flex-wrap gap-2">
+          {PRESETS.map((p) => (
+            <button
+              key={p.key}
+              onClick={() => goToPreset(p.key)}
+              className={`text-sm font-medium px-4 py-1.5 rounded-full border transition ${
+                activePreset === p.key
+                  ? "bg-blue-600 text-white border-blue-600"
+                  : "bg-white text-gray-600 border-gray-300 hover:border-blue-400 hover:text-blue-600"
+              }`}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+        {!isMultiMonth && (
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => goToMonth(subMonths(navMonth, 1))}
+              className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 transition"
+            >
+              <ChevronLeft size={16} />
+            </button>
+            <span className="text-sm font-semibold text-gray-700 capitalize w-36 text-center">
+              {format(navMonth, "MMMM yyyy", { locale: tr })}
+            </span>
+            <button
+              onClick={() => goToMonth(addMonths(navMonth, 1))}
+              className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 transition"
+            >
+              <ChevronRight size={16} />
+            </button>
+          </div>
+        )}
+      </div>
+
       <div className="flex items-center justify-between">
         <div className="bg-white rounded-xl border border-gray-200 px-5 py-3">
-          <p className="text-xs text-gray-500">Bu Ayki Toplam Gider</p>
+          <p className="text-xs text-gray-500">{getPeriodLabel()}</p>
           <p className="text-xl font-bold text-red-600 mt-0.5">
             ₺{total.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
           </p>
@@ -322,7 +398,7 @@ export default function ExpenseList({
           </table>
         ) : (
           <div className="text-center py-14 text-gray-400">
-            <p>Bu ay için henüz gider eklenmemiş.</p>
+            <p>Bu dönem için henüz gider eklenmemiş.</p>
           </div>
         )}
       </div>
