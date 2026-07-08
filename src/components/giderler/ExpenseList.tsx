@@ -9,10 +9,9 @@ import { format, addMonths, subMonths, startOfMonth } from "date-fns";
 import { tr } from "date-fns/locale";
 
 const PRESETS = [
+  { key: "all", label: "Tümü" },
   { key: "thismonth", label: "Bu Ay" },
-  { key: "lastmonth", label: "Geçen Ay" },
   { key: "last3months", label: "Son 3 Ay" },
-  { key: "last6months", label: "Son 6 Ay" },
 ] as const;
 
 const CATEGORIES = ["Ofis", "Ulaşım", "Yazılım", "Yemek", "Kira", "Diğer"];
@@ -62,7 +61,7 @@ export default function ExpenseList({
   const supabase = createClient();
   const router = useRouter();
 
-  const isMultiMonth = activePreset === "last3months" || activePreset === "last6months";
+  const isMultiMonth = activePreset === "last3months" || activePreset === "all";
 
   function getNavMonth(): Date {
     if (activeMonth) {
@@ -84,8 +83,8 @@ export default function ExpenseList({
   }
 
   function getPeriodLabel() {
+    if (activePreset === "all") return "Tüm Zamanlar Toplam Gider";
     if (activePreset === "last3months") return "Son 3 Ay Toplam Gider";
-    if (activePreset === "last6months") return "Son 6 Ay Toplam Gider";
     return `${format(navMonth, "MMMM yyyy", { locale: tr })} Toplam Gider`;
   }
 
